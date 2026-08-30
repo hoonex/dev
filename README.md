@@ -21,9 +21,19 @@
 
 React/Next.js 같은 프레임워크를 아직 강제하지 않은 이유는 초기 제품 구조와 상호작용을 빠르게 검증하기 위해서입니다. 데이터 모델과 Supabase API 경계는 분리되어 있어, 규모가 커지면 프론트엔드만 프레임워크로 이전할 수 있습니다.
 
-## 로컬 미리보기
+## 현재 Supabase 상태
 
-Supabase 설정이 없으면 자동으로 **미리보기 모드**가 열립니다. 로컬 데이터로 방, 할 일, 상태, 타이머와 통계 흐름을 확인할 수 있습니다.
+실제 `Sideby` Supabase 프로젝트가 연결되어 있습니다.
+
+- Region: Seoul (`ap-northeast-2`)
+- `config.js`: Project URL + Supabase publishable key 사용
+- RLS: 모든 사용자 데이터 테이블에서 활성화
+- Realtime: 방 멤버, 오늘 할 일, 공부 상태 구독
+- RLS 내부 helper는 API에 노출되지 않는 `private` schema 사용
+
+`config.js`의 publishable key는 브라우저 클라이언트에 포함하도록 설계된 공개 키입니다. `service_role` 같은 서버 전용 비밀 키는 저장소에 넣지 않습니다.
+
+## 로컬 실행
 
 ```bash
 python3 -m http.server 4173
@@ -31,20 +41,24 @@ python3 -m http.server 4173
 
 브라우저에서 `http://localhost:4173`을 엽니다.
 
-## Supabase 연결
+실제 Supabase 설정을 일시적으로 제거하면 앱은 자동으로 로컬 미리보기 저장소를 사용할 수 있도록 데이터 계층이 분리되어 있습니다.
 
-1. Supabase 프로젝트를 준비합니다.
-2. SQL Editor 또는 Supabase CLI로 `supabase/migrations/20260830130000_initial.sql`을 적용합니다.
-3. `config.example.js`를 `config.js`로 복사합니다.
-4. Project URL과 publishable key를 입력합니다.
-5. Supabase Auth에서 Google provider를 설정하거나 email magic link를 사용합니다.
-6. Auth의 Site URL / Redirect URL에 실제 배포 주소를 등록합니다.
+## Supabase migrations
 
-```bash
-cp config.example.js config.js
-```
+새 환경을 재구성할 때 아래 순서대로 적용합니다.
 
-`config.js`는 `.gitignore`에 포함되어 있어 키 값을 저장소에 커밋하지 않습니다. Supabase publishable key는 브라우저 공개용 키지만, 환경별 설정을 분리하기 위해 저장소에는 예시만 둡니다.
+1. `supabase/migrations/20260830130000_initial.sql`
+2. `supabase/migrations/20260830132900_harden_rls_helpers.sql`
+3. `supabase/migrations/20260830133000_optimize_rls_and_indexes.sql`
+
+현재 운영 프로젝트에는 위와 동일한 변경이 이미 적용되어 있습니다.
+
+## Auth
+
+- Email magic link 코드 경계가 구현되어 있습니다.
+- Google OAuth 코드 경계가 구현되어 있습니다.
+- 실제 배포 후 Supabase Auth의 Site URL / Redirect URLs에 배포 주소를 등록해야 합니다.
+- Google OAuth를 쓰려면 Supabase Auth에서 Google provider 설정도 추가해야 합니다.
 
 ## 검증
 
@@ -62,4 +76,4 @@ npm run check
 - `study_status`: 방별 현재 공부/휴식 상태
 - `focus_sessions`: 개인 집중 세션
 
-모든 사용자 데이터 테이블에 RLS가 활성화되며, 방 코드를 통한 참가/생성은 `security definer` RPC를 통해 처리합니다.
+모든 사용자 데이터 테이블에 RLS가 활성화됩니다. 방 생성/참가는 입력 검증과 `auth.uid()` 확인을 수행하는 제한된 `security definer` RPC로 처리하고, RLS 판정 helper는 `private` schema에 격리합니다.
