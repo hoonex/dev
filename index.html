@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#070914" />
+  <title>Marble Arena — Physics Roulette</title>
+  <meta name="description" content="번호와 이름을 구슬로 만들어 다양한 물리 맵에서 겨루는 마블 룰렛." />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Marble Arena 홈"><span class="brand-orb"></span><span>MARBLE <b>ARENA</b></span></a>
+      <div class="top-meta"><span class="live-dot"></span><span>PHYSICS ROULETTE</span></div>
+    </header>
+
+    <section class="layout">
+      <aside class="control-panel" aria-label="룰렛 설정">
+        <div class="panel-heading"><div><p class="eyebrow">SETUP</p><h1>누가 먼저<br />도착할까?</h1></div><button class="icon-button" id="randomizeMap" type="button" title="랜덤 맵">↻</button></div>
+        <div class="mode-tabs" role="tablist" aria-label="참가자 입력 방식">
+          <button class="mode-tab active" id="numberModeTab" type="button" role="tab" aria-selected="true">번호 자동</button>
+          <button class="mode-tab" id="customModeTab" type="button" role="tab" aria-selected="false">직접 입력</button>
+        </div>
+        <div class="input-block" id="numberModePanel">
+          <div class="range-row"><label>시작<input id="rangeStart" type="number" value="1" min="-999" max="999" inputmode="numeric" /></label><span>→</span><label>끝<input id="rangeEnd" type="number" value="30" min="-999" max="999" inputmode="numeric" /></label></div>
+          <button class="secondary-button full" id="applyRange" type="button">번호 만들기</button>
+        </div>
+        <div class="input-block hidden" id="customModePanel">
+          <label class="field-label" for="participantInput">참가자</label>
+          <textarea id="participantInput" rows="5" spellcheck="false" placeholder="1, 2, 3, 4 또는&#10;민수*2, 지수, 현우"></textarea>
+          <p class="helper"><code>*숫자</code>를 붙이면 같은 구슬을 여러 개 넣을 수 있음.</p>
+        </div>
+        <div class="participant-summary"><div><span id="participantCount">30</span><small>MARBLES</small></div><button class="text-button" id="shuffleButton" type="button">섞기</button></div>
+
+        <div class="setting-group">
+          <div class="group-title"><span>MAP</span><span id="mapCount">01 / 04</span></div>
+          <div class="map-grid" id="mapGrid">
+            <button class="map-card active" type="button" data-map="neon-grid"><span class="map-thumb map-thumb-grid"></span><strong>NEON GRID</strong><small>핀 + 로터</small></button>
+            <button class="map-card" type="button" data-map="switchback"><span class="map-thumb map-thumb-switch"></span><strong>SWITCHBACK</strong><small>지그재그</small></button>
+            <button class="map-card" type="button" data-map="vortex"><span class="map-thumb map-thumb-vortex"></span><strong>VORTEX</strong><small>소용돌이</small></button>
+            <button class="map-card" type="button" data-map="dropzone"><span class="map-thumb map-thumb-drop"></span><strong>DROPZONE</strong><small>범퍼 지옥</small></button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="group-title"><span>WINNER</span><span>당첨 기준</span></div>
+          <div class="segmented" id="winnerMode"><button type="button" class="active" data-winner="first">1등</button><button type="button" data-winner="last">꼴등</button><button type="button" data-winner="rank">순위</button></div>
+          <label class="rank-field hidden" id="rankField">당첨 순위 <input id="winnerRank" type="number" value="3" min="1" max="80" inputmode="numeric" /></label>
+        </div>
+
+        <label class="toggle-row"><span><strong>CHAOS EVENTS</strong><small>가끔 바람이 구슬을 흔듦</small></span><input id="chaosToggle" type="checkbox" checked /><span class="toggle-ui" aria-hidden="true"></span></label>
+        <button class="start-button" id="startButton" type="button" disabled><span>LOADING PHYSICS</span><b>…</b></button>
+        <p class="validation" id="validationMessage" role="status">물리 엔진을 불러오는 중...</p>
+      </aside>
+
+      <section class="arena-panel" aria-label="마블 경기장">
+        <div class="arena-topbar"><div class="arena-title"><p>NOW PLAYING</p><strong id="activeMapName">NEON GRID</strong></div><div class="race-tools"><div class="speed-control" aria-label="배속"><button type="button" data-speed="1" class="active">1×</button><button type="button" data-speed="2">2×</button><button type="button" data-speed="4">4×</button></div><button class="tool-button" id="shakeButton" type="button">SHAKE</button><button class="tool-button" id="resetButton" type="button">RESET</button></div></div>
+        <div class="arena-stage" id="arenaStage">
+          <canvas id="arenaCanvas" width="900" height="1600" aria-label="구슬 물리 경주 화면"></canvas>
+          <div class="start-gate" id="startGate"><span>READY</span></div>
+          <div class="countdown" id="countdown" aria-live="assertive"></div>
+          <div class="winner-overlay hidden" id="winnerOverlay"><p id="winnerModeLabel">WINNER</p><strong id="winnerName">7</strong><span id="winnerSubtext">1등으로 도착</span><button type="button" id="raceAgainButton">다시 돌리기</button></div>
+          <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <aside class="ranking-panel" aria-label="실시간 순위">
+        <div class="ranking-heading"><div><p class="eyebrow">LIVE</p><h2>도착 순위</h2></div><span id="finishCount">0 / 30</span></div>
+        <ol class="ranking-list" id="rankingList"><li class="ranking-empty">경기를 시작하면<br />여기에 순위가 쌓입니다.</li></ol>
+        <div class="rank-footer"><span class="pulse-dot"></span><span id="raceStatus">LOADING PHYSICS</span></div>
+      </aside>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const sources = [
+        "https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js",
+        "https://unpkg.com/matter-js@0.20.0/build/matter.min.js"
+      ];
+      const validation = document.getElementById("validationMessage");
+      const start = document.getElementById("startButton");
+      const status = document.getElementById("raceStatus");
+      let index = 0;
+      const loadApp = () => {
+        const app = document.createElement("script");
+        app.src = "./app.js";
+        app.onload = () => {
+          start.disabled = false;
+          start.querySelector("span").textContent = "START RACE";
+          start.querySelector("b").textContent = "▶";
+          validation.textContent = "";
+        };
+        app.onerror = () => {
+          validation.textContent = "앱 스크립트를 불러오지 못했습니다. 새로고침해 주세요.";
+          status.textContent = "LOAD ERROR";
+        };
+        document.body.appendChild(app);
+      };
+      const tryNext = () => {
+        if (window.Matter) return loadApp();
+        if (index >= sources.length) {
+          validation.textContent = "물리 엔진 로딩에 실패했습니다. 네트워크를 확인한 뒤 새로고침해 주세요.";
+          status.textContent = "PHYSICS LOAD ERROR";
+          start.querySelector("span").textContent = "LOAD FAILED";
+          start.querySelector("b").textContent = "!";
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = sources[index++];
+        script.crossOrigin = "anonymous";
+        script.onload = () => window.Matter ? loadApp() : tryNext();
+        script.onerror = tryNext;
+        document.head.appendChild(script);
+      };
+      tryNext();
+    })();
+  </script>
+</body>
+</html>
