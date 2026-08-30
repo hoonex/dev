@@ -1,4 +1,5 @@
-import Matter from "https://cdn.jsdelivr.net/npm/matter-js@0.20.0/+esm";
+const Matter=globalThis.Matter;
+if(!Matter) throw new Error("Matter.js failed to load");
 const {Engine,Render,Runner,Bodies,Body,Composite,Events}=Matter;
 const W=900,H=1600,FINISH_Y=1515,MAX=80;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
