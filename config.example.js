@@ -1,0 +1,4 @@
+window.__STUDY_ROOM_CONFIG__ = {
+  supabaseUrl: "https://YOUR_PROJECT.supabase.co",
+  supabasePublishableKey: "sb_publishable_YOUR_KEY"
+};
