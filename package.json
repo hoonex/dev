@@ -1,0 +1,5 @@
+{
+  "name": "one-daily-word",
+  "private": true,
+  "scripts": {"check": "node --check app.js"}
+}
