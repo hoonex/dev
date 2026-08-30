@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#090a0d" />
+  <meta name="color-scheme" content="dark" />
+  <title>Flick — 기기간 임시 클립보드</title>
+  <meta name="description" content="로그인 없이 방 키 하나로 폰, PC, 태블릿 사이에 텍스트와 링크를 실시간으로 던지는 임시 클립보드." />
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./config.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+  <div class="noise"></div>
+  <main id="app"></main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
