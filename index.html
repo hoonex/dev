@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Daily Science Drill</title>
+  <style>
+    :root{color-scheme:dark;--bg:#08090c;--card:#12141a;--line:#262a34;--text:#f4f6fb;--muted:#969dad;--good:#8ef0b2;--bad:#ff9d9d;--accent:#c9d4ff}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 50% -10%,#1b2030 0,#0b0d12 34%,var(--bg) 64%);color:var(--text);font-family:Inter,Pretendard,system-ui,-apple-system,sans-serif;min-height:100vh}
+    .wrap{width:min(760px,calc(100% - 28px));margin:0 auto;padding:42px 0 80px}.eyebrow{font-size:12px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase}.head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin:8px 0 24px}h1{font-size:clamp(28px,7vw,50px);line-height:.95;margin:0;letter-spacing:-.055em}.streak{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;text-align:right}.panel{background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 18px 60px #0006;backdrop-filter:blur(14px)}
+    .meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}.pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:12px}.progress{height:7px;background:#1b1e26;border-radius:99px;overflow:hidden;margin:12px 0 22px}.bar{height:100%;width:0;background:var(--accent);transition:.25s}.q{padding:19px 0;border-top:1px solid var(--line)}.q:first-of-type{border-top:0}.qnum{font-size:12px;color:var(--muted);margin-bottom:8px}.prompt{font-size:17px;line-height:1.55;font-weight:680;letter-spacing:-.02em}.choices{display:grid;gap:8px;margin-top:14px}.choice{width:100%;border:1px solid var(--line);background:#0d0f14;color:var(--text);border-radius:14px;padding:13px 14px;text-align:left;font:inherit;cursor:pointer;transition:.15s}.choice:hover{border-color:#4a5267}.choice.selected{border-color:var(--accent);background:#171b26}.choice.correct{border-color:var(--good);background:#102019}.choice.wrong{border-color:var(--bad);background:#231313}.answer{display:none;margin-top:12px;padding:12px 14px;border-radius:13px;background:#0d1016;color:#c6cad3;line-height:1.55;font-size:14px}.answer.show{display:block}.actions{position:sticky;bottom:12px;margin-top:18px;display:flex;gap:10px}.btn{flex:1;border:0;border-radius:15px;padding:14px 16px;font-weight:760;font-size:15px;cursor:pointer}.primary{background:#f3f5fa;color:#0b0c10}.secondary{background:#1a1d25;color:#e8ebf2;border:1px solid var(--line)}.score{display:none;margin-top:16px;border-radius:16px;padding:16px;background:#0d1016}.score.show{display:block}.history{margin-top:18px}.history select{width:100%;background:#101219;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:11px}.empty{color:var(--muted);line-height:1.7;padding:30px 6px}.small{font-size:12px;color:var(--muted);margin-top:12px}@media(max-width:500px){.wrap{padding-top:28px}.panel{border-radius:18px;padding:15px}.head{align-items:start;flex-direction:column}.streak{text-align:left}.actions{bottom:8px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="eyebrow">2026 MIDTERM · PHYSICS / CHEMISTRY</div>
+    <div class="head"><h1>Daily<br>Science Drill</h1><div class="streak" id="stat">오늘 문제를 불러오는 중…</div></div>
+    <section class="panel">
+      <div id="app" class="empty">문제 데이터를 확인하고 있어.</div>
+    </section>
+  </main>
+  <script src="quiz-data.js"></script>
+  <script>
+  const sets = Array.isArray(window.QUIZ_SETS) ? window.QUIZ_SETS : [];
+  const app=document.getElementById('app'), stat=document.getElementById('stat');
+  let setIndex=Math.max(0,sets.length-1), selected={};
+  const key=s=>`science-drill:${s.date}`;
+  function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function render(){
+    if(!sets.length){app.innerHTML='<div class="empty"><b>아직 생성된 문제가 없어.</b><br>평일 자정 학습이 끝나면 그날 배운 범위 문제 세트가 여기에 자동으로 누적돼.</div>';stat.textContent='대기 중';return}
+    const s=sets[setIndex]; selected={};
+    const saved=JSON.parse(localStorage.getItem(key(s))||'null');
+    stat.textContent=`누적 ${sets.length}회 · ${s.subject}`;
+    app.className=''; app.innerHTML=`
+      <div class="meta"><span class="pill">${escapeHtml(s.date)}</span><span class="pill">${escapeHtml(s.subject)}</span><span class="pill">${escapeHtml(s.range||'오늘 학습 범위')}</span><span class="pill">${s.questions.length}문제</span></div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">${escapeHtml(s.title||'오늘의 확인 문제')}</div>
+      <div class="small">완자 원본의 오늘 학습 개념을 바탕으로 새로 만든 문제 · 답 제출 후 해설 공개</div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div id="questions">${s.questions.map((q,i)=>questionHtml(q,i)).join('')}</div>
+      <div id="score" class="score"></div>
+      <div class="history"><select id="history">${sets.map((x,i)=>`<option value="${i}" ${i===setIndex?'selected':''}>${escapeHtml(x.date)} · ${escapeHtml(x.subject)} · ${escapeHtml(x.title||'문제 세트')}</option>`).reverse().join('')}</select></div>
+      <div class="actions"><button class="btn secondary" id="reset">다시 풀기</button><button class="btn primary" id="submit">채점하기</button></div>`;
+    document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>choose(+b.dataset.q,+b.dataset.c));
+    document.getElementById('submit').onclick=grade; document.getElementById('reset').onclick=()=>{localStorage.removeItem(key(s));render()};
+    const h=document.getElementById('history'); h.onchange=()=>{setIndex=sets.findIndex((_,i)=>String(i)===h.value); if(setIndex<0)setIndex=sets.length-1; render()};
+    if(saved?.answers){selected=saved.answers; Object.entries(selected).forEach(([qi,ci])=>markSelected(+qi,+ci)); updateBar(); if(saved.graded) grade(true)} else updateBar();
+  }
+  function questionHtml(q,i){return `<article class="q" id="q${i}"><div class="qnum">QUESTION ${String(i+1).padStart(2,'0')} · ${escapeHtml(q.type||'개념/적용')}</div><div class="prompt">${escapeHtml(q.prompt)}</div><div class="choices">${q.choices.map((c,j)=>`<button class="choice" data-q="${i}" data-c="${j}">${j+1}. ${escapeHtml(c)}</button>`).join('')}</div><div class="answer" id="a${i}"></div></article>`}
+  function markSelected(qi,ci){document.querySelectorAll(`[data-q="${qi}"]`).forEach(b=>b.classList.toggle('selected',+b.dataset.c===ci))}
+  function choose(qi,ci){selected[qi]=ci;markSelected(qi,ci);updateBar()}
+  function updateBar(){const s=sets[setIndex], n=Object.keys(selected).length; const b=document.getElementById('bar');if(b)b.style.width=`${100*n/s.questions.length}%`}
+  function grade(fromSaved=false){const s=sets[setIndex];let score=0; s.questions.forEach((q,i)=>{document.querySelectorAll(`[data-q="${i}"]`).forEach(b=>{b.disabled=true; const c=+b.dataset.c;b.classList.remove('selected'); if(c===q.answer)b.classList.add('correct'); else if(selected[i]===c)b.classList.add('wrong')}); if(selected[i]===q.answer)score++; const a=document.getElementById(`a${i}`);a.innerHTML=`<b>${selected[i]===q.answer?'정답':'오답'} · ${q.answer+1}번</b><br>${escapeHtml(q.explanation||'')}${q.tip?`<br><span style="color:#9ea7bd">TIP · ${escapeHtml(q.tip)}</span>`:''}`;a.classList.add('show')}); const pct=Math.round(score/s.questions.length*100); const box=document.getElementById('score');box.innerHTML=`<b>${score} / ${s.questions.length} · ${pct}점</b><br><span style="color:var(--muted)">${pct>=80?'좋음. 틀린 문제만 한 번 더 풀면 된다.':pct>=60?'틀린 개념을 오늘 설명에서 다시 확인해.':'기초 개념을 다시 보고 재도전하는 편이 낫다.'}</span>`;box.classList.add('show'); localStorage.setItem(key(s),JSON.stringify({answers:selected,graded:true,score,at:Date.now()})); if(!fromSaved)box.scrollIntoView({behavior:'smooth',block:'center'})}
+  render();
+  </script>
+</body>
+</html>
