@@ -15,9 +15,10 @@ await fs.mkdir('audit-artifacts', { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const report = [];
 const failures = [];
-const fail = (kind, detail) => failures.push({ kind, detail });
 
-// Data contract: bad generated quiz data must fail before deployment.
+function fail(kind, detail) { failures.push({ kind, detail }); }
+
+// Data contract audit: a bad generated set must fail CI before deployment is considered healthy.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
@@ -39,49 +40,75 @@ const fail = (kind, detail) => failures.push({ kind, detail });
   await context.close();
 }
 
-// Layout audit across target viewports.
 for (const vp of viewports) {
   const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: 1 });
   const page = await context.newPage();
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await page.waitForSelector('#history');
+
   const options = await page.locator('#history option').evaluateAll(opts => opts.map(o => ({ value: o.value, text: o.textContent || '' })));
-  for (const target of [{ key:'chem', match:'물질과 에너지' },{ key:'physics', match:'역학과 에너지' }]) {
+  const targets = [
+    { key: 'chem', match: '물질과 에너지' },
+    { key: 'physics', match: '역학과 에너지' },
+  ];
+
+  for (const target of targets) {
     const found = options.find(o => o.text.includes(target.match));
     if (!found) { fail('missing-set', `${vp.name}: ${target.match}`); continue; }
     await page.selectOption('#history', found.value);
-    await page.waitForTimeout(180);
+    await page.waitForTimeout(200);
+
     const metrics = await page.evaluate(() => {
       const vw = document.documentElement.clientWidth;
+      const bodyOverflow = document.documentElement.scrollWidth - vw;
       const visuals = [...document.querySelectorAll('.visual')].map((el, i) => {
         const r = el.getBoundingClientRect();
         const svg = el.querySelector('svg');
         const sr = svg?.getBoundingClientRect();
-        return {i,left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,svgWidth:sr?Math.round(sr.width):null,svgHeight:sr?Math.round(sr.height):null,clippedX:r.left < -1 || r.right > vw + 1,internalOverflowX:el.scrollWidth > el.clientWidth + 2};
+        return {
+          i,
+          left: Math.round(r.left), right: Math.round(r.right), width: Math.round(r.width),
+          scrollWidth: el.scrollWidth, clientWidth: el.clientWidth,
+          svgWidth: sr ? Math.round(sr.width) : null,
+          svgHeight: sr ? Math.round(sr.height) : null,
+          clippedX: r.left < -1 || r.right > vw + 1,
+          internalOverflowX: el.scrollWidth > el.clientWidth + 2,
+        };
       });
-      const choices = [...document.querySelectorAll('.choice')].map(el => { const r=el.getBoundingClientRect(); return {left:r.left,right:r.right,width:r.width}; });
+      const choices = [...document.querySelectorAll('.choice')].map(el => {
+        const r = el.getBoundingClientRect(); return { left:r.left, right:r.right, width:r.width };
+      });
       const hero = document.querySelector('.hero')?.getBoundingClientRect();
-      return {viewportWidth:vw,bodyOverflow:document.documentElement.scrollWidth-vw,visualCount:visuals.length,visuals,choiceOverflow:choices.some(r=>r.left < -1 || r.right > vw + 1),heroHeight:hero?Math.round(hero.height):null};
+      return {
+        viewportWidth: vw,
+        bodyOverflow,
+        visualCount: visuals.length,
+        visuals,
+        choiceOverflow: choices.some(r => r.left < -1 || r.right > vw + 1),
+        heroHeight: hero ? Math.round(hero.height) : null,
+      };
     });
+
     report.push({ viewport: vp, set: target.key, metrics });
-    if (metrics.bodyOverflow > 2 || metrics.choiceOverflow || metrics.visuals.some(v=>v.clippedX)) fail('layout',{viewport:vp.name,set:target.key,metrics});
-    if (metrics.heroHeight && metrics.heroHeight > 150) fail('hero-size',`${vp.name}: hero ${metrics.heroHeight}px`);
-    await page.screenshot({ path:`audit-artifacts/${vp.name}-${target.key}-full.png`, fullPage:true });
+    if (metrics.bodyOverflow > 2 || metrics.choiceOverflow || metrics.visuals.some(v => v.clippedX)) fail('layout', {viewport:vp.name,set:target.key,metrics});
+    if (metrics.heroHeight && metrics.heroHeight > 150) fail('hero-size', `${vp.name}: hero ${metrics.heroHeight}px`);
+
+    await page.screenshot({ path: `audit-artifacts/${vp.name}-${target.key}-full.png`, fullPage: true });
+    const visuals = page.locator('.visual');
+    const count = await visuals.count();
+    for (let i = 0; i < Math.min(count, 4); i++) await visuals.nth(i).screenshot({ path: `audit-artifacts/${vp.name}-${target.key}-visual-${i+1}.png` });
   }
   await context.close();
 }
 
-// Functional mastery audit.
-// 1) unanswered main questions cannot be graded
-// 2) every wrong main question creates exactly two similar questions
-// 3) after a partial retry result, already-correct retry questions stay passed
-// 4) only missed retry questions return
-// 5) solving the final missed retry marks the set complete.
+// Functional audit: intentionally miss every main question and require exactly two retry questions per miss.
+// Bind data lookup to the exact selected history option; multiple sets can share the same subject.
 {
-  const context = await browser.newContext({ viewport: { width:390, height:844 }, deviceScaleFactor:1 });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
+  await page.goto(baseURL, { waitUntil: 'networkidle' });
+  await page.waitForSelector('#history');
   for (const target of [{key:'chem',match:'물질과 에너지'},{key:'physics',match:'역학과 에너지'}]) {
-    await page.goto(baseURL, { waitUntil:'networkidle' });
     await page.evaluate(() => localStorage.clear());
     await page.reload({ waitUntil:'networkidle' });
     await page.waitForSelector('#history');
@@ -97,9 +124,9 @@ for (const vp of viewports) {
     if (await page.locator('.answer.show').count()) fail('unanswered-main',`${target.key}: unanswered main was graded`);
 
     const data = await page.evaluate(() => {
-      const text = document.querySelector('#history option:checked')?.textContent || '';
-      const subject = text.includes('물질과 에너지') ? '물질과 에너지' : '역학과 에너지';
-      const s = (window.QUIZ_SETS || []).find(x => x.subject === subject);
+      const selectedValue = document.querySelector('#history')?.value;
+      const selectedIndex = Number(selectedValue);
+      const s = Number.isInteger(selectedIndex) ? (window.QUIZ_SETS || [])[selectedIndex] : null;
       return {id:s?.id || s?.date, answers:(s?.questions||[]).map(q=>q.answer), retries:(s?.questions||[]).flatMap((q,qi)=>(q.remediation||[]).map((r,ri)=>({id:`${qi}:${ri}`,answer:r.answer})))};
     });
 
@@ -146,6 +173,6 @@ for (const vp of viewports) {
 }
 
 await browser.close();
-await fs.writeFile('audit-artifacts/report.json',JSON.stringify({report,failures},null,2));
-console.log(JSON.stringify({audited:report.length,failures:failures.length,failuresDetail:failures},null,2));
+await fs.writeFile('audit-artifacts/report.json', JSON.stringify({report,failures}, null, 2));
+console.log(JSON.stringify({ audited: report.length, failures: failures.length, failuresDetail: failures }, null, 2));
 if (failures.length) process.exitCode = 1;
