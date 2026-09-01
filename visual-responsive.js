@@ -1,0 +1,82 @@
+(() => {
+  const base = window.visualHtml;
+  let seq = 0;
+  const uid = p => `${p}-r-${++seq}`;
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = (x,d=0) => Number.isFinite(Number(x)) ? Number(x) : d;
+  const fmt = x => {
+    const v=Number(x); if(!Number.isFinite(v)) return esc(x);
+    if(Math.abs(v)>=1000 || (Math.abs(v)>0&&Math.abs(v)<0.01)) return v.toExponential(1);
+    return Number.isInteger(v)?String(v):String(Number(v.toFixed(2)));
+  };
+  const C={ink:'#172033',muted:'#6f7d94',axis:'#53627a',grid:'#e2e8f2',blue:'#315ee8',red:'#d04d63',green:'#248a5a',paper:'#fff'};
+  const caption=v=>v?.caption?`<div class="visual-caption">${esc(v.caption)}</div>`:'';
+  const box=(v,html,cls='')=>`<div class="visual visual-hq visual-r ${cls}">${html}${caption(v)}</div>`;
+  const svg=(vb,body,label)=>`<svg class="science-svg" viewBox="${vb}" role="img" aria-label="${esc(label||'자료 그림')}" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
+  const defs=id=>`<defs><linearGradient id="${id}-gas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef5ff"/><stop offset="1" stop-color="#d9e8ff"/></linearGradient><linearGradient id="${id}-metal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#77869b"/><stop offset=".5" stop-color="#edf2f7"/><stop offset="1" stop-color="#65758a"/></linearGradient><filter id="${id}-shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#22355a" flood-opacity=".12"/></filter><marker id="${id}-ab" markerWidth="10" markerHeight="10" refX="8.2" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="${C.blue}"/></marker><marker id="${id}-ar" markerWidth="10" markerHeight="10" refX="8.2" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="${C.red}"/></marker><marker id="${id}-ad" markerWidth="10" markerHeight="10" refX="8.2" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="${C.axis}"/></marker></defs>`;
+
+  function niceStep(span,target=5){
+    const raw=Math.max(Number.EPSILON,span/target),pow=10**Math.floor(Math.log10(raw)),f=raw/pow;
+    const nf=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10; return nf*pow;
+  }
+  function scaleInfo(values,includeZero=false,target=5){
+    let lo=Math.min(...values),hi=Math.max(...values); if(!Number.isFinite(lo)||!Number.isFinite(hi))return{lo:0,hi:1,ticks:[0,1]};
+    if(includeZero){lo=Math.min(0,lo);hi=Math.max(0,hi)}; if(lo===hi){const d=Math.abs(lo||1)*.5;lo-=d;hi+=d}
+    const step=niceStep(hi-lo,target); lo=Math.floor(lo/step)*step; hi=Math.ceil(hi/step)*step;
+    if(includeZero&&lo>0)lo=0; if(includeZero&&hi<0)hi=0;
+    const ticks=[]; for(let x=lo,i=0;x<=hi+step*.001&&i<20;x+=step,i++)ticks.push(Number(x.toPrecision(12)));
+    return{lo,hi,ticks};
+  }
+  const nearConstant=arr=>{if(arr.length<2)return false;const avg=arr.reduce((a,b)=>a+b,0)/arr.length;const tol=Math.max(Math.abs(avg)*.045,.0001);return arr.every(x=>Math.abs(x-avg)<=tol)};
+
+  function graph(v){
+    const id=uid('g');
+    const series=Array.isArray(v.series)&&v.series.length?v.series.map((s,i)=>({label:s.label||`자료 ${i+1}`,points:s.points||[],color:s.color||[C.blue,C.red,C.green,'#b37713'][i%4]})):[{label:v.label||'',points:v.points||[],color:C.blue}];
+    const all=series.flatMap(s=>s.points).filter(p=>Array.isArray(p)&&Number.isFinite(Number(p[0]))&&Number.isFinite(Number(p[1]))); if(!all.length)return base?base(v):'';
+    const xs=all.map(p=>Number(p[0])),ys=all.map(p=>Number(p[1])); const sx=scaleInfo(xs,Boolean(v.includeZeroX),5),sy=scaleInfo(ys,Boolean(v.includeZeroY),5);
+    const W=640,H=390,L=88,R=30,T=30,B=72,PW=W-L-R,PH=H-T-B; const X=x=>L+(x-sx.lo)/(sx.hi-sx.lo||1)*PW,Y=y=>T+PH-(y-sy.lo)/(sy.hi-sy.lo||1)*PH;
+    let grid=''; sx.ticks.forEach(t=>{const x=X(t);grid+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${T+PH}" stroke="${C.grid}"/><line x1="${x}" y1="${T+PH}" x2="${x}" y2="${T+PH+7}" stroke="${C.axis}"/><text x="${x}" y="${T+PH+27}" text-anchor="middle" class="svg-tick">${fmt(t)}</text>`}); sy.ticks.forEach(t=>{const y=Y(t);grid+=`<line x1="${L}" y1="${y}" x2="${L+PW}" y2="${y}" stroke="${C.grid}"/><line x1="${L-7}" y1="${y}" x2="${L}" y2="${y}" stroke="${C.axis}"/><text x="${L-13}" y="${y+5}" text-anchor="end" class="svg-tick">${fmt(t)}</text>`});
+    let curves=''; series.forEach((s,si)=>{
+      const valid=s.points.filter(p=>Array.isArray(p)&&Number.isFinite(Number(p[0]))&&Number.isFinite(Number(p[1]))).map(p=>[Number(p[0]),Number(p[1]),p[2]]).sort((a,b)=>a[0]-b[0]); if(!valid.length)return;
+      const inv=valid.every(p=>p[0]!==0)&&nearConstant(valid.map(p=>p[0]*p[1])); const direct=valid.every(p=>p[0]!==0)&&nearConstant(valid.map(p=>p[1]/p[0]));
+      let sampled=valid.map(p=>[p[0],p[1]]);
+      if(inv&&valid.length>=2){const k=valid.reduce((a,p)=>a+p[0]*p[1],0)/valid.length;sampled=[];for(let i=0;i<=80;i++){const x=valid[0][0]+(valid.at(-1)[0]-valid[0][0])*i/80;sampled.push([x,k/x])}}
+      else if(direct&&valid.length>=2){const k=valid.reduce((a,p)=>a+p[1]/p[0],0)/valid.length;sampled=[[valid[0][0],k*valid[0][0]],[valid.at(-1)[0],k*valid.at(-1)[0]]]}
+      const d=sampled.map((p,i)=>`${i?'L':'M'} ${X(p[0])} ${Y(p[1])}`).join(' '); curves+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>`;
+      valid.forEach((p,i)=>{const label=(v.pointLabels&&v.pointLabels[i])||p[2]||'';const px=X(p[0]),py=Y(p[1]);curves+=`<circle cx="${px}" cy="${py}" r="6" fill="#fff" stroke="${s.color}" stroke-width="3"/>${label?`<text x="${px+10}" y="${py-10}" class="svg-label">${esc(label)}</text>`:''}`});
+    });
+    const legend=series.length>1?`<g transform="translate(${L+10},${T+12})">${series.map((s,i)=>`<g transform="translate(${i*130},0)"><line x1="0" y1="0" x2="25" y2="0" stroke="${s.color}" stroke-width="4"/><text x="34" y="5" class="svg-small">${esc(s.label)}</text></g>`).join('')}</g>`:'';
+    const body=`${defs(id)}<rect x="1" y="1" width="638" height="388" rx="18" fill="#fbfdff" stroke="#dce6f3"/>${grid}<line x1="${L}" y1="${T+PH}" x2="${L+PW+12}" y2="${T+PH}" stroke="${C.axis}" stroke-width="2" marker-end="url(#${id}-ad)"/><line x1="${L}" y1="${T+PH}" x2="${L}" y2="${T-12}" stroke="${C.axis}" stroke-width="2" marker-end="url(#${id}-ad)"/>${curves}${legend}<text x="${L+PW/2}" y="${H-16}" text-anchor="middle" class="svg-axis">${esc(v.xLabel||'x')}${v.xUnit?` (${esc(v.xUnit)})`:''}</text><text x="24" y="${T+PH/2}" text-anchor="middle" class="svg-axis" transform="rotate(-90 24 ${T+PH/2})">${esc(v.yLabel||'y')}${v.yUnit?` (${esc(v.yUnit)})`:''}</text>`;
+    return box(v,svg(`0 0 ${W} ${H}`,body,'그래프'),'graph-visual responsive-graph');
+  }
+
+  function particleDots(x,top,w,h,count){let out='';const cols=Math.max(3,Math.ceil(Math.sqrt(count*1.3))),rows=Math.max(2,Math.ceil(count/cols));for(let k=0;k<count;k++){const col=k%cols,row=Math.floor(k/cols),cx=x+16+(col+.5)/cols*(w-32)+(((k*37)%9)-4),cy=top+14+(row+.5)/rows*(h-28)+(((k*29)%7)-3);out+=`<g><circle cx="${cx}" cy="${cy}" r="6.5" fill="#fff" stroke="${C.blue}" stroke-width="2.5"/><path d="M${cx-10},${cy} l-8,-2 M${cx+10},${cy} l8,2" stroke="${C.blue}" opacity=".45" stroke-width="1.2"/></g>`}return out}
+  function piston(v){
+    const states=Array.isArray(v.states)?v.states:[];if(!states.length)return base?base(v):'';
+    const cards=states.map((s,i)=>{const id=uid('p'),W=270,H=350,cx=135,chX=58,chY=70,chW=154,chH=190,frac=Math.max(.18,Math.min(.9,num(s.height,.6))),gasH=chH*frac,pY=chY+chH-gasH,info=[s.pressure&&`P = ${s.pressure}`,s.volume&&`V = ${s.volume}`,s.temperature&&`T = ${s.temperature}`].filter(Boolean);const arrows=s.pressure?`<g>${[-34,0,34].map(dx=>`<line x1="${cx+dx}" y1="30" x2="${cx+dx}" y2="55" stroke="${C.red}" stroke-width="3" marker-end="url(#${id}-ar)"/>`).join('')}</g>`:'';const body=`${defs(id)}<rect x="5" y="5" width="260" height="338" rx="22" fill="#fff" stroke="#d9e3f0" filter="url(#${id}-shadow)"/><rect x="18" y="18" width="60" height="27" rx="13.5" fill="#eef3ff"/><text x="48" y="36" text-anchor="middle" class="svg-chip">${esc(s.label||`상태 ${i+1}`)}</text>${arrows}<rect x="${chX}" y="${chY}" width="${chW}" height="${chH}" rx="12" fill="#fcfdff" stroke="#73829a" stroke-width="2.3"/><path d="M${chX+7},${chY+8} V${chY+chH-9} M${chX+chW-7},${chY+8} V${chY+chH-9}" stroke="#d4dce8" stroke-width="5"/><rect x="${chX+9}" y="${pY+10}" width="${chW-18}" height="${chY+chH-pY-19}" rx="7" fill="url(#${id}-gas)"/><rect x="${chX+6}" y="${pY}" width="${chW-12}" height="13" rx="4" fill="url(#${id}-metal)" stroke="#4b5c72"/><rect x="${cx-5}" y="${Math.max(48,pY-38)}" width="10" height="${Math.max(0,pY-Math.max(48,pY-38))}" rx="4" fill="url(#${id}-metal)"/><rect x="${cx-34}" y="${Math.max(45,pY-45)}" width="68" height="9" rx="5" fill="#64748b"/>${particleDots(chX+8,pY+12,chW-16,chY+chH-pY-20,Math.max(1,num(s.particles,8)))}<line x1="${chX-14}" y1="${pY}" x2="${chX-14}" y2="${chY+chH}" stroke="#94a3b8"/><line x1="${chX-19}" y1="${pY}" x2="${chX-9}" y2="${pY}" stroke="#94a3b8"/><line x1="${chX-19}" y1="${chY+chH}" x2="${chX-9}" y2="${chY+chH}" stroke="#94a3b8"/>${info.length?`<text x="${cx}" y="292" text-anchor="middle" class="svg-info">${info.map((t,j)=>`<tspan x="${cx}" dy="${j?19:0}">${esc(t)}</tspan>`).join('')}</text>`:''}`;return `<div class="piston-card">${svg(`0 0 ${W} ${H}`,body,'기체 피스톤 상태')}</div>`}).join('');
+    return box(v,`<div class="piston-grid">${cards}</div>`,'piston-visual responsive-piston');
+  }
+
+  function vectors(v){
+    const id=uid('v'),arr=Array.isArray(v.vectors)?v.vectors:[],res=v.resultant||null;if(!arr.length&&!res)return base?base(v):'';const W=620,H=370,cx=310,cy=190,all=[...arr,res].filter(Boolean),max=Math.max(1,...all.map(a=>Math.hypot(num(a.x),num(a.y)))),scale=Math.min(1.6,135/max),P=a=>[cx+num(a.x)*scale,cy-num(a.y)*scale];let grid='';for(let x=70;x<=550;x+=40)grid+=`<line x1="${x}" y1="35" x2="${x}" y2="325" stroke="#e8edf5"/>`;for(let y=50;y<=320;y+=40)grid+=`<line x1="70" y1="${y}" x2="550" y2="${y}" stroke="#e8edf5"/>`;let para='';if(arr.length===2&&res){const a=P(arr[0]),b=P(arr[1]);para=`<path d="M${a[0]} ${a[1]} L${a[0]+b[0]-cx} ${a[1]+b[1]-cy} M${b[0]} ${b[1]} L${b[0]+a[0]-cx} ${b[1]+a[1]-cy}" stroke="#aab6c8" stroke-width="1.8" stroke-dasharray="7 6" fill="none"/>`}
+    const angle=a=>Math.atan2(-num(a.y),num(a.x));const arrows=arr.map((a,i)=>{const p=P(a),ang=angle(a),same=arr.some((b,j)=>j<i&&Math.abs(angle(b)-ang)<.15),dy=same?18:-14,dx=Math.cos(ang)>=0?10:-10,label=a.label||`F${i+1}`,w=Math.max(44,String(label).length*9+18);return `<line x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}" stroke="${C.blue}" stroke-width="4.2" marker-end="url(#${id}-ab)"/><g transform="translate(${p[0]+dx},${p[1]+dy})"><rect x="${dx<0?-w: -4}" y="-15" width="${w}" height="24" rx="8" fill="#fff" stroke="#dce5f1"/><text x="${dx<0?-w+7:3}" y="2" class="svg-label">${esc(label)}</text></g>`}).join('');let rr='';if(res){const p=P(res),label=res.label||'R',w=Math.max(42,String(label).length*10+18);rr=`<line x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}" stroke="${C.red}" stroke-width="4.7" stroke-dasharray="9 6" marker-end="url(#${id}-ar)"/><g transform="translate(${p[0]+10},${p[1]-16})"><rect x="-4" y="-15" width="${w}" height="24" rx="8" fill="#fff7f8" stroke="#f1b8c1"/><text x="3" y="2" class="svg-label" fill="${C.red}">${esc(label)}</text></g>`}
+    return box(v,svg(`0 0 ${W} ${H}`,`${defs(id)}<rect x="1" y="1" width="618" height="368" rx="18" fill="#fbfdff" stroke="#dce6f3"/>${grid}<line x1="60" y1="${cy}" x2="560" y2="${cy}" stroke="#bdc8d7"/><line x1="${cx}" y1="330" x2="${cx}" y2="40" stroke="#bdc8d7"/>${para}<circle cx="${cx}" cy="${cy}" r="12" fill="#f4f7fb" stroke="#c4cfde"/><circle cx="${cx}" cy="${cy}" r="5" fill="${C.ink}"/>${arrows}${rr}`,'힘 벡터 그림'),'vector-visual responsive-vector');
+  }
+
+  function lagrange3(p0,p1,p2,x){const [x0,y0]=p0,[x1,y1]=p1,[x2,y2]=p2;const d0=(x0-x1)*(x0-x2),d1=(x1-x0)*(x1-x2),d2=(x2-x0)*(x2-x1);if(Math.abs(d0*d1*d2)<1e-9)return null;return y0*((x-x1)*(x-x2)/d0)+y1*((x-x0)*(x-x2)/d1)+y2*((x-x0)*(x-x1)/d2)}
+  function trajectory(v){
+    const id=uid('t'),pts=(Array.isArray(v.points)&&v.points.length?v.points:[[0,0],[1,1.7],[2,2.5],[3,2.4],[4,1.5],[5,0]]).map(p=>[num(p[0]),num(p[1]),p[2]]).sort((a,b)=>a[0]-b[0]);const first=pts[0],last=pts.at(-1),apex=pts.reduce((a,b)=>b[1]>a[1]?b:a,pts[0]);let samples=[];if(apex[0]!==first[0]&&apex[0]!==last[0]){for(let i=0;i<=100;i++){const x=first[0]+(last[0]-first[0])*i/100,y=lagrange3(first,apex,last,x);samples.push([x,y])}}else samples=pts.map(p=>[p[0],p[1]]);const xs=[...pts.map(p=>p[0]),...samples.map(p=>p[0])],ys=[...pts.map(p=>p[1]),...samples.map(p=>p[1])],sx=scaleInfo(xs,true,6),sy=scaleInfo(ys,true,5),W=640,H=380,L=66,R=32,T=34,B=58,PW=W-L-R,PH=H-T-B,X=x=>L+(x-sx.lo)/(sx.hi-sx.lo||1)*PW,Y=y=>T+PH-(y-sy.lo)/(sy.hi-sy.lo||1)*PH;let grid='';sx.ticks.forEach(t=>{const x=X(t);grid+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${T+PH}" stroke="#edf1f7"/>`});sy.ticks.forEach(t=>{const y=Y(t);grid+=`<line x1="${L}" y1="${y}" x2="${L+PW}" y2="${y}" stroke="#edf1f7"/>`});const path=samples.map((p,i)=>`${i?'L':'M'} ${X(p[0])} ${Y(p[1])}`).join(' '),labels=v.labels||pts.map((p,i)=>p[2]||String.fromCharCode(65+i)),dots=pts.map((p,i)=>{const hi=i===v.highlight,px=X(p[0]),py=Y(p[1]);return `<g><circle cx="${px}" cy="${py}" r="${hi?13:9}" fill="${hi?'#fce8eb':'#e8efff'}"/><circle cx="${px}" cy="${py}" r="${hi?6.5:5.2}" fill="${hi?C.red:C.blue}"/><text x="${px+11}" y="${py-12}" class="svg-point-label" fill="${hi?C.red:C.ink}">${esc(labels[i]||'')}</text></g>`}).join(''),ground=Y(0);return box(v,svg(`0 0 ${W} ${H}`,`${defs(id)}<rect x="1" y="1" width="638" height="378" rx="18" fill="#fbfdff" stroke="#dce6f3"/>${grid}<line x1="${L}" y1="${ground}" x2="${L+PW}" y2="${ground}" stroke="#6f7d91" stroke-width="2"/><path d="${path}" fill="none" stroke="#aec2ff" stroke-width="11" opacity=".18"/><path d="${path}" fill="none" stroke="${C.blue}" stroke-width="3.5" stroke-linecap="round"/>${dots}<text x="${L+PW-5}" y="${ground+25}" text-anchor="end" class="svg-small">수평면</text>`,'포물선 운동 궤적'),'trajectory-visual responsive-trajectory');
+  }
+
+  function enhanced(v){if(!v)return'';if(v.type==='graph')return graph(v);if(v.type==='piston')return piston(v);if(v.type==='vectors')return vectors(v);if(v.type==='trajectory')return trajectory(v);return base?base(v):''}
+  window.visualHtml=enhanced;
+
+  const style=document.createElement('style');style.textContent=`
+    .actions{position:static!important;z-index:auto!important}
+    .visual-r{overflow:hidden!important}.piston-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;align-items:start}.piston-card{width:100%;max-width:300px;margin:0 auto}.piston-card .science-svg{max-height:none!important}
+    @media(max-width:560px){.visual-r{padding:8px!important}.responsive-graph .svg-tick{font-size:17px!important}.responsive-graph .svg-axis{font-size:18px!important}.responsive-graph .svg-label{font-size:17px!important}.responsive-graph .svg-small{font-size:16px!important}.responsive-vector .svg-label,.responsive-vector .svg-small,.responsive-vector .svg-point-label,.responsive-trajectory .svg-point-label,.responsive-trajectory .svg-small{font-size:17px!important}.piston-grid{grid-template-columns:1fr;gap:10px}.piston-card{max-width:285px}.responsive-graph .science-svg,.responsive-vector .science-svg,.responsive-trajectory .science-svg{max-height:none!important}}
+    @media(min-width:561px) and (max-width:900px){.piston-card{max-width:310px}}
+    @media(max-height:520px) and (orientation:landscape){.shell{padding-top:12px!important}.top{margin-bottom:12px!important}.hero{margin-bottom:12px!important}.hero h1{font-size:36px!important}.visual{margin:10px 0 4px!important}.responsive-graph .science-svg,.responsive-vector .science-svg,.responsive-trajectory .science-svg{max-height:285px!important}.piston-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.piston-card{max-width:235px}.piston-card .science-svg{max-height:300px!important}.q{padding:18px 0!important}}
+  `;document.head.appendChild(style);
+  if(typeof window.render==='function')window.render();
+})();
