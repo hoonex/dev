@@ -6,6 +6,7 @@ on:
     paths:
       - "index.html"
       - "quiz-data.js"
+      - "visual-renderer.js"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -36,8 +37,9 @@ jobs:
       - name: Build static artifact
         run: |
           mkdir -p _site
-          cp index.html quiz-data.js _site/
+          cp index.html quiz-data.js visual-renderer.js _site/
           sed -i "s|src=\"quiz-data.js\"|src=\"quiz-data.js?v=${GITHUB_SHA}\"|" _site/index.html
+          sed -i "s|</body>|<script src=\"visual-renderer.js?v=${GITHUB_SHA}\"></script></body>|" _site/index.html
           touch _site/.nojekyll
 
       - name: Upload Pages artifact
