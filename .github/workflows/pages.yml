@@ -9,6 +9,8 @@ on:
       - "visual-renderer.js"
       - "visual-responsive.js"
       - "app-patch.js"
+      - "tests/visual-audit.mjs"
+      - "QA_RULES.md"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -22,7 +24,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  quality_gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare test site
+        run: |
+          mkdir -p _site
+          cp index.html quiz-data.js visual-renderer.js visual-responsive.js app-patch.js _site/
+          sed -i 's|</body>|<script src="visual-renderer.js"></script><script src="visual-responsive.js"></script><script src="app-patch.js"></script></body>|' _site/index.html
+      - name: Install Chromium
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 >/dev/null
+          npx playwright install --with-deps chromium
+      - name: Serve test site
+        run: |
+          python3 -m http.server 4173 -d _site > /tmp/science-http.log 2>&1 &
+          sleep 2
+      - name: Run viewport + retry QA
+        run: node tests/visual-audit.mjs
+      - name: Keep QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-qa
+          path: audit-artifacts/
+          if-no-files-found: error
+
   deploy:
+    needs: quality_gate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
