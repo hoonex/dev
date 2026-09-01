@@ -37,6 +37,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html quiz-data.js _site/
+          sed -i "s|src=\"quiz-data.js\"|src=\"quiz-data.js?v=${GITHUB_SHA}\"|" _site/index.html
           touch _site/.nojekyll
 
       - name: Upload Pages artifact
