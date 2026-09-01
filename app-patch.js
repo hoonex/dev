@@ -62,8 +62,23 @@
     };
   }
 
+  function clarifyRetryCopy() {
+    const result = document.getElementById('remResult');
+    if (!result || result.classList.contains('complete')) return;
+    const text = result.textContent || '';
+    const match = text.match(/보강\s+(\d+)\/(\d+)/);
+    if (!match) return;
+    const correct = Number(match[1]);
+    const total = Number(match[2]);
+    const missed = Math.max(0, total - correct);
+    result.innerHTML = `<b>유사문제 ${total}개 중 ${correct}개 정답</b><br>${missed}개를 틀렸어. 해설을 확인한 뒤 아래 버튼으로 다시 풀면 돼.`;
+    const btn = document.getElementById('remSubmit');
+    if (btn && btn.textContent.includes('보강 다시 풀기')) btn.textContent = '유사문제 다시 풀기';
+  }
+
   let lastRetryCount = 0;
   const watcher = new MutationObserver(() => {
+    clarifyRetryCopy();
     const remed = document.querySelector('#remediation .remed');
     if (!remed) { lastRetryCount = 0; return; }
     const count = remed.querySelectorAll('.rq').length;
@@ -79,5 +94,5 @@
     }
   });
   const app = document.getElementById('app');
-  if (app) watcher.observe(app,{subtree:true,childList:true});
+  if (app) watcher.observe(app,{subtree:true,childList:true,characterData:true});
 })();
