@@ -11,10 +11,21 @@ This file records regressions that must not come back. Treat it as a release con
 - A missing remediation bank must never be silently marked complete.
 
 ## Functional contract
-- Intentionally answering every main question wrong must display 2 retry questions per missed question.
+- Unanswered main questions must not be silently counted as wrong. Block grading and move the learner to the first unanswered question.
+- Intentionally answering every main question wrong must display exactly 2 similar-practice questions per missed main question.
 - Retry questions must be selectable and gradable.
+- A partial retry pass preserves already-correct retry questions. Correct retry questions must never be forced on the learner again.
+- After partial retry grading, only the still-wrong retry questions return.
+- The retry result must state in plain language how many similar questions are already correct and how many remain.
+- Solving the final remaining retry sets remediationDone=true.
 - Test sets do not affect overdue/progress logic.
 - Regular sets cannot be completed until required retries are passed.
+
+## Retry UX language contract
+- User-facing copy must describe the action, not internal mechanics.
+- Prefer: `틀린 문제 다시 연습`, `비슷한 문제`, `남은 N문제`, `틀린 N문제 다시 풀기`.
+- Do not show ambiguous internal terms such as `보강 1/2`, `오답 보강`, `완료 처리`, `remediation`, or bare fractions with no explanation.
+- Explain the loop once: `틀린 문제마다 비슷한 문제 2개 → 맞힌 건 끝 → 틀린 것만 다시 풀기 → 전부 맞히면 끝`.
 
 ## Visual contract
 Audit at: 390x844, 844x390, 768x1024, 1024x768, 1366x768, 1920x1080.
