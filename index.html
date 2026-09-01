@@ -3,66 +3,117 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f8fafc" />
   <title>Daily Science Drill</title>
   <style>
-    :root{color-scheme:dark;--bg:#08090c;--card:#12141a;--line:#262a34;--text:#f4f6fb;--muted:#969dad;--good:#8ef0b2;--bad:#ff9d9d;--accent:#c9d4ff}
-    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 50% -10%,#1b2030 0,#0b0d12 34%,var(--bg) 64%);color:var(--text);font-family:Inter,Pretendard,system-ui,-apple-system,sans-serif;min-height:100vh}
-    .wrap{width:min(760px,calc(100% - 28px));margin:0 auto;padding:42px 0 80px}.eyebrow{font-size:12px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase}.head{display:flex;justify-content:space-between;gap:16px;align-items:end;margin:8px 0 24px}h1{font-size:clamp(28px,7vw,50px);line-height:.95;margin:0;letter-spacing:-.055em}.streak{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;text-align:right}.panel{background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 18px 60px #0006;backdrop-filter:blur(14px)}
-    .meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}.pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:12px}.pill.overdue{border-color:#713e45;color:#ffb3b3;background:#2b1518}.notice{margin:0 0 16px;padding:12px 14px;border-radius:14px;border:1px solid #713e45;background:#241215;color:#ffc0c0;font-size:13px;line-height:1.55}.progress{height:7px;background:#1b1e26;border-radius:99px;overflow:hidden;margin:12px 0 22px}.bar{height:100%;width:0;background:var(--accent);transition:.25s}.q{padding:19px 0;border-top:1px solid var(--line)}.q:first-of-type{border-top:0}.qnum{font-size:12px;color:var(--muted);margin-bottom:8px}.prompt{font-size:17px;line-height:1.55;font-weight:680;letter-spacing:-.02em}.choices{display:grid;gap:8px;margin-top:14px}.choice{width:100%;border:1px solid var(--line);background:#0d0f14;color:var(--text);border-radius:14px;padding:13px 14px;text-align:left;font:inherit;cursor:pointer;transition:.15s}.choice:hover{border-color:#4a5267}.choice.selected{border-color:var(--accent);background:#171b26}.choice.correct{border-color:var(--good);background:#102019}.choice.wrong{border-color:var(--bad);background:#231313}.answer{display:none;margin-top:12px;padding:12px 14px;border-radius:13px;background:#0d1016;color:#c6cad3;line-height:1.55;font-size:14px}.answer.show{display:block}.actions{position:sticky;bottom:12px;margin-top:18px;display:flex;gap:10px}.btn{flex:1;border:0;border-radius:15px;padding:14px 16px;font-weight:760;font-size:15px;cursor:pointer}.primary{background:#f3f5fa;color:#0b0c10}.secondary{background:#1a1d25;color:#e8ebf2;border:1px solid var(--line)}.score{display:none;margin-top:16px;border-radius:16px;padding:16px;background:#0d1016}.score.show{display:block}.history{margin-top:18px}.history select{width:100%;background:#101219;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:11px}.history option:disabled{color:#555}.empty{color:var(--muted);line-height:1.7;padding:30px 6px}.small{font-size:12px;color:var(--muted);margin-top:12px}@media(max-width:500px){.wrap{padding-top:28px}.panel{border-radius:18px;padding:15px}.head{align-items:start;flex-direction:column}.streak{text-align:left}.actions{bottom:8px}}
+    :root{color-scheme:light;--bg:#f5f7fb;--paper:#fff;--paper2:#f9fbff;--line:#dde3ee;--text:#172033;--muted:#6f7a8f;--accent:#315ee8;--accent2:#e8efff;--good:#177a49;--goodbg:#e9f8ef;--bad:#bd3346;--badbg:#fff0f1;--warn:#a96612;--warnbg:#fff7e8;--shadow:0 18px 55px rgba(31,48,78,.10)}
+    *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;min-height:100vh;background:radial-gradient(circle at 8% -10%,#dfe9ff 0,transparent 31%),radial-gradient(circle at 94% 4%,#e8f6ff 0,transparent 24%),var(--bg);color:var(--text);font-family:Inter,Pretendard,system-ui,-apple-system,"Noto Sans KR",sans-serif}
+    button,input,select{font:inherit}.shell{width:min(820px,calc(100% - 28px));margin:0 auto;padding:24px 0 80px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:-.035em}.mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#315ee8,#6d8cff);box-shadow:0 8px 20px #315ee833;display:grid;place-items:center;color:#fff;font-size:14px}.account{border:1px solid var(--line);background:#ffffffcc;color:var(--text);border-radius:999px;padding:9px 13px;font-weight:720;cursor:pointer;box-shadow:0 4px 14px #23324a0b}.hero{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:18px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.13em;color:#7181a3;text-transform:uppercase}.hero h1{font-size:clamp(34px,8vw,60px);line-height:.96;letter-spacing:-.06em;margin:7px 0 0}.status{font-size:13px;color:var(--muted);text-align:right;line-height:1.55}
+    .panel{background:rgba(255,255,255,.91);border:1px solid rgba(215,222,234,.95);border-radius:24px;padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(14px)}.meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}.pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);background:#fff;font-size:12px;font-weight:680}.pill.overdue{border-color:#ffc7cf;color:var(--bad);background:var(--badbg)}.notice{margin:0 0 16px;padding:13px 14px;border-radius:15px;border:1px solid #ffd2d8;background:var(--badbg);color:#9a2939;font-size:13px;line-height:1.55}.title{font-size:22px;font-weight:850;letter-spacing:-.035em}.small{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.55}.progress{height:8px;background:#edf0f6;border-radius:99px;overflow:hidden;margin:17px 0 12px}.bar{height:100%;width:0;background:linear-gradient(90deg,#315ee8,#7190f8);transition:.25s}.q{padding:22px 0;border-top:1px solid #e8ecf2}.q:first-of-type{border-top:0}.qnum{font-size:11px;color:#8190a9;font-weight:800;letter-spacing:.08em;margin-bottom:9px}.prompt{font-size:17px;line-height:1.57;font-weight:760;letter-spacing:-.025em}.choices{display:grid;gap:9px;margin-top:14px}.choice{width:100%;border:1px solid #dce3ee;background:#fff;color:var(--text);border-radius:15px;padding:13px 14px;text-align:left;cursor:pointer;transition:.14s}.choice:hover{border-color:#9bb0e9;background:#fbfcff}.choice.selected{border-color:#6d8cf1;background:#eef3ff;box-shadow:0 0 0 2px #dfe8ff inset}.choice.correct{border-color:#8bd1aa;background:var(--goodbg);color:#125b39}.choice.wrong{border-color:#ef9da9;background:var(--badbg);color:#8d2635}.choice:disabled{cursor:default}.answer{display:none;margin-top:12px;padding:13px 14px;border-radius:14px;background:#f7f9fc;border:1px solid #e1e6ef;color:#4f5b6f;line-height:1.57;font-size:13.5px}.answer.show{display:block}.actions{position:sticky;bottom:10px;display:flex;gap:10px;margin-top:18px;padding-top:4px}.btn{flex:1;border:0;border-radius:15px;padding:14px 16px;font-weight:820;cursor:pointer;box-shadow:0 8px 20px #1f2c4310}.primary{background:var(--accent);color:#fff}.secondary{background:#fff;color:#33405a;border:1px solid var(--line)}.score{display:none;margin-top:17px;border-radius:17px;padding:16px;background:#f8faff;border:1px solid #dce4f2;line-height:1.6}.score.show{display:block}.history{margin-top:20px}.history select{width:100%;background:#fff;color:var(--text);border:1px solid var(--line);border-radius:13px;padding:12px}.history option:disabled{color:#aaa}.empty{color:var(--muted);line-height:1.7;padding:30px 6px}
+    .remed{margin-top:20px;border-radius:20px;background:#fffaf0;border:1px solid #f0d7a4;padding:17px}.remed-head{display:flex;align-items:start;justify-content:space-between;gap:12px}.remed-title{font-size:19px;font-weight:850;letter-spacing:-.03em}.remed-badge{font-size:11px;font-weight:850;padding:6px 9px;border-radius:999px;background:#fff0ca;color:#8b5d0a}.rq{padding:18px 0;border-top:1px solid #f1dfba}.rq:first-of-type{border-top:0}.ranswer{display:none;margin-top:10px;padding:11px 12px;border-radius:12px;background:#fff;border:1px solid #eddab7;font-size:13px;color:#5f594d;line-height:1.5}.ranswer.show{display:block}.remed-actions{display:flex;gap:9px;margin-top:10px}.complete{margin-top:17px;border:1px solid #b8dfc9;background:var(--goodbg);color:#145b39;border-radius:16px;padding:14px;font-size:14px;line-height:1.55}
+    dialog{border:0;padding:0;border-radius:22px;box-shadow:0 28px 90px #24345233;width:min(430px,calc(100% - 28px));color:var(--text)}dialog::backdrop{background:#33405a38;backdrop-filter:blur(5px)}.authbox{padding:22px}.authhead{display:flex;align-items:center;justify-content:space-between;gap:12px}.authhead h2{margin:0;font-size:23px;letter-spacing:-.04em}.close{border:0;background:#f1f4f9;width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:18px}.field{display:grid;gap:6px;margin-top:14px}.field label{font-size:12px;font-weight:760;color:var(--muted)}.field input{width:100%;border:1px solid var(--line);border-radius:13px;padding:12px 13px;outline:none;background:#fff}.field input:focus{border-color:#7791e7;box-shadow:0 0 0 3px #e4ebff}.authactions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}.authmsg{min-height:20px;margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.5}.signed{padding:16px 0 4px}.signed strong{font-size:20px}.sync{font-size:12px;color:var(--muted);margin-top:5px}.logout{width:100%;margin-top:17px;border:1px solid var(--line);background:#fff;border-radius:13px;padding:12px;cursor:pointer;font-weight:760}.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,16px);background:#1e2a42;color:#fff;border-radius:999px;padding:10px 14px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:20;box-shadow:0 10px 30px #1d294033}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:560px){.shell{padding-top:17px}.hero{align-items:start;flex-direction:column}.status{text-align:left}.panel{border-radius:20px;padding:16px}.actions{bottom:8px}.authactions{grid-template-columns:1fr}.top{margin-bottom:20px}}
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <div class="eyebrow">2026 MIDTERM · PHYSICS / CHEMISTRY</div>
-    <div class="head"><h1>Daily<br>Science Drill</h1><div class="streak" id="stat">오늘 문제를 불러오는 중…</div></div>
-    <section class="panel">
-      <div id="app" class="empty">문제 데이터를 확인하고 있어.</div>
-    </section>
+  <main class="shell">
+    <div class="top"><div class="brand"><span class="mark">SD</span><span>Science Drill</span></div><button class="account" id="accountBtn">로그인</button></div>
+    <section class="hero"><div><div class="eyebrow">2026 MIDTERM · PHYSICS / CHEMISTRY</div><h1>Daily<br>Science Drill</h1></div><div class="status" id="stat">문제를 불러오는 중…</div></section>
+    <section class="panel"><div id="app" class="empty">문제 데이터를 확인하고 있어.</div></section>
   </main>
+  <dialog id="authDialog"><div class="authbox"><div class="authhead"><h2>학습 계정</h2><button class="close" id="authClose" aria-label="닫기">×</button></div><div id="authBody"></div></div></dialog>
+  <div class="toast" id="toast"></div>
   <script src="quiz-data.js"></script>
   <script>
-  const sets = Array.isArray(window.QUIZ_SETS) ? window.QUIZ_SETS : [];
-  const app=document.getElementById('app'), stat=document.getElementById('stat');
+  const API_URL='https://eicwcohfrvhwimwevzkd.supabase.co';
+  const API_KEY='sb_publishable_-9Cf0yVjLWf88pcvAqQ-EQ_YN9v3Obz';
+  const sets=Array.isArray(window.QUIZ_SETS)?window.QUIZ_SETS:[];
+  const app=document.getElementById('app'),stat=document.getElementById('stat'),accountBtn=document.getElementById('accountBtn');
+  const authDialog=document.getElementById('authDialog'),authBody=document.getElementById('authBody'),toastEl=document.getElementById('toast');
   const key=s=>`science-drill:${s.date}`;
+  const sessionKey='science-drill-session-v1';
+  const authSession=()=>{try{return JSON.parse(localStorage.getItem(sessionKey)||'null')}catch{return null}};
   const savedFor=s=>{try{return JSON.parse(localStorage.getItem(key(s))||'null')}catch{return null}};
-  const completed=s=>Boolean(savedFor(s)?.graded);
+  const completed=s=>{const x=savedFor(s);return Boolean(x?.graded&&x?.remediationDone!==false)};
   const deadlineMs=s=>s.deadline?new Date(s.deadline).getTime():new Date(`${s.date}T23:59:59+09:00`).getTime()+86400000;
   const isOverdue=s=>Date.now()>deadlineMs(s)&&!completed(s);
   const firstOverdueIndex=()=>sets.findIndex(isOverdue);
   const overdueCount=()=>sets.filter(isOverdue).length;
   const deadlineLabel=s=>new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(deadlineMs(s)));
-  let setIndex=firstOverdueIndex()>=0?firstOverdueIndex():Math.max(0,sets.length-1), selected={};
-  function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  let setIndex=firstOverdueIndex()>=0?firstOverdueIndex():Math.max(0,sets.length-1),selected={},remSelected={};
+
+  function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function toast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.remove('show'),1900)}
+  async function rpc(name,body){const r=await fetch(`${API_URL}/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:API_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});const text=await r.text();let data;try{data=JSON.parse(text)}catch{data=text}if(!r.ok)throw new Error(data?.message||String(data||'요청 실패'));return data}
+  async function syncSave(s,data){const session=authSession();if(!session?.token)return;try{await rpc('science_drill_progress_save',{p_token:session.token,p_quiz_date:s.date,p_data:data})}catch(e){console.warn('sync save',e)}}
+  function persist(s,data){localStorage.setItem(key(s),JSON.stringify(data));syncSave(s,data)}
+
   function render(){
-    if(!sets.length){app.innerHTML='<div class="empty"><b>아직 생성된 문제가 없어.</b><br>평일 자정 학습이 끝나면 그날 배운 범위 문제 세트가 여기에 자동으로 누적돼.</div>';stat.textContent='대기 중';return}
-    const debt=firstOverdueIndex();
-    if(debt>=0&&setIndex>debt)setIndex=debt;
-    const s=sets[setIndex]; selected={};
-    const saved=savedFor(s);
-    const overdue=Date.now()>deadlineMs(s)&&!saved?.graded;
-    stat.textContent=debt>=0?`연체 ${overdueCount()}회 · 먼저 완료`:`누적 ${sets.length}회 · ${s.subject}`;
-    app.className=''; app.innerHTML=`
-      ${overdue?'<div class="notice"><b>마감이 지난 세트야.</b><br>이 세트를 채점 완료해야 뒤의 새 세트가 열린다.</div>':''}
-      <div class="meta"><span class="pill">${escapeHtml(s.date)}</span><span class="pill">${escapeHtml(s.subject)}</span><span class="pill">${escapeHtml(s.range||'오늘 학습 범위')}</span><span class="pill">${s.questions.length}문제</span><span class="pill ${overdue?'overdue':''}">마감 ${escapeHtml(deadlineLabel(s))}</span></div>
-      <div style="font-size:20px;font-weight:800;letter-spacing:-.03em">${escapeHtml(s.title||'오늘의 확인 문제')}</div>
-      <div class="small">완자 원본의 오늘 학습 개념을 바탕으로 새로 만든 문제 · 답 제출 후 해설 공개</div>
+    updateAccount();
+    if(!sets.length){app.innerHTML='<div class="empty"><b>아직 생성된 문제가 없어.</b><br>평일 자정 학습 뒤 문제 세트가 자동으로 추가돼.</div>';stat.textContent='대기 중';return}
+    const debt=firstOverdueIndex();if(debt>=0&&setIndex>debt)setIndex=debt;
+    const s=sets[setIndex],saved=savedFor(s);selected=saved?.answers||{};remSelected=saved?.remediationAnswers||{};
+    const overdue=isOverdue(s),done=completed(s);
+    stat.textContent=debt>=0?`연체 ${overdueCount()}회 · 먼저 완료`:`누적 ${sets.length}회 · ${done?'오늘 세트 완료':s.subject}`;
+    app.className='';
+    app.innerHTML=`${overdue?'<div class="notice"><b>마감이 지난 세트야.</b><br>본문 문제와 오답 보강까지 끝내야 다음 세트가 열린다.</div>':''}
+      <div class="meta"><span class="pill">${esc(s.date)}</span><span class="pill">${esc(s.subject)}</span><span class="pill">${esc(s.range||'오늘 학습 범위')}</span><span class="pill">${s.questions.length}문제</span><span class="pill ${overdue?'overdue':''}">마감 ${esc(deadlineLabel(s))}</span></div>
+      <div class="title">${esc(s.title||'오늘의 확인 문제')}</div>
+      <div class="small">본문을 채점한 뒤 틀린 문제는 같은 개념의 변형문제 2개로 다시 확인한다.</div>
       <div class="progress"><div class="bar" id="bar"></div></div>
       <div id="questions">${s.questions.map((q,i)=>questionHtml(q,i)).join('')}</div>
       <div id="score" class="score"></div>
-      <div class="history"><select id="history">${sets.map((x,i)=>`<option value="${i}" ${i===setIndex?'selected':''} ${debt>=0&&i>debt?'disabled':''}>${escapeHtml(x.date)} · ${escapeHtml(x.subject)} · ${escapeHtml(x.title||'문제 세트')}${isOverdue(x)?' · 연체':''}</option>`).reverse().join('')}</select></div>
-      <div class="actions"><button class="btn secondary" id="reset">다시 풀기</button><button class="btn primary" id="submit">채점하기</button></div>`;
+      <div id="remediation"></div>
+      ${done?'<div class="complete"><b>완료.</b> 본문 채점과 필요한 오답 보강까지 끝났다.</div>':''}
+      <div class="history"><select id="history">${sets.map((x,i)=>`<option value="${i}" ${i===setIndex?'selected':''} ${debt>=0&&i>debt?'disabled':''}>${esc(x.date)} · ${esc(x.subject)} · ${esc(x.title||'문제 세트')}${completed(x)?' · 완료':isOverdue(x)?' · 연체':''}</option>`).reverse().join('')}</select></div>
+      <div class="actions"><button class="btn secondary" id="reset">다시 풀기</button><button class="btn primary" id="submit">${saved?.graded?'채점 결과 보기':'본문 채점하기'}</button></div>`;
     document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>choose(+b.dataset.q,+b.dataset.c));
-    document.getElementById('submit').onclick=()=>grade(false); document.getElementById('reset').onclick=()=>{localStorage.removeItem(key(s));render()};
-    const h=document.getElementById('history'); h.onchange=()=>{const target=Number(h.value);const currentDebt=firstOverdueIndex();setIndex=currentDebt>=0&&target>currentDebt?currentDebt:target;render()};
-    if(saved?.answers){selected=saved.answers; Object.entries(selected).forEach(([qi,ci])=>markSelected(+qi,+ci)); updateBar(); if(saved.graded) grade(true)} else updateBar();
+    document.getElementById('reset').onclick=()=>{localStorage.removeItem(key(s));syncSave(s,{});render()};
+    document.getElementById('submit').onclick=()=>gradeMain(Boolean(saved?.graded));
+    document.getElementById('history').onchange=e=>{const target=Number(e.target.value),d=firstOverdueIndex();setIndex=d>=0&&target>d?d:target;render()};
+    Object.entries(selected).forEach(([qi,ci])=>markSelected(+qi,+ci));updateBar();
+    if(saved?.graded)gradeMain(true);
   }
-  function questionHtml(q,i){return `<article class="q" id="q${i}"><div class="qnum">QUESTION ${String(i+1).padStart(2,'0')} · ${escapeHtml(q.type||'개념/적용')}</div><div class="prompt">${escapeHtml(q.prompt)}</div><div class="choices">${q.choices.map((c,j)=>`<button class="choice" data-q="${i}" data-c="${j}">${j+1}. ${escapeHtml(c)}</button>`).join('')}</div><div class="answer" id="a${i}"></div></article>`}
+  function questionHtml(q,i){return `<article class="q" id="q${i}"><div class="qnum">QUESTION ${String(i+1).padStart(2,'0')} · ${esc(q.type||'개념/적용')}</div><div class="prompt">${esc(q.prompt)}</div><div class="choices">${q.choices.map((c,j)=>`<button class="choice" data-q="${i}" data-c="${j}">${j+1}. ${esc(c)}</button>`).join('')}</div><div class="answer" id="a${i}"></div></article>`}
   function markSelected(qi,ci){document.querySelectorAll(`[data-q="${qi}"]`).forEach(b=>b.classList.toggle('selected',+b.dataset.c===ci))}
-  function choose(qi,ci){selected[qi]=ci;markSelected(qi,ci);updateBar()}
-  function updateBar(){const s=sets[setIndex], n=Object.keys(selected).length; const b=document.getElementById('bar');if(b)b.style.width=`${100*n/s.questions.length}%`}
-  function refreshLocks(){const debt=firstOverdueIndex();document.querySelectorAll('#history option').forEach(o=>{const i=Number(o.value);o.disabled=debt>=0&&i>debt});stat.textContent=debt>=0?`연체 ${overdueCount()}회 · 먼저 완료`:`누적 ${sets.length}회 · 완료 기록 저장됨`}
-  function grade(fromSaved=false){const s=sets[setIndex];let score=0; s.questions.forEach((q,i)=>{document.querySelectorAll(`[data-q="${i}"]`).forEach(b=>{b.disabled=true; const c=+b.dataset.c;b.classList.remove('selected'); if(c===q.answer)b.classList.add('correct'); else if(selected[i]===c)b.classList.add('wrong')}); if(selected[i]===q.answer)score++; const a=document.getElementById(`a${i}`);a.innerHTML=`<b>${selected[i]===q.answer?'정답':'오답'} · ${q.answer+1}번</b><br>${escapeHtml(q.explanation||'')}${q.tip?`<br><span style="color:#9ea7bd">TIP · ${escapeHtml(q.tip)}</span>`:''}`;a.classList.add('show')}); const pct=Math.round(score/s.questions.length*100); const wasOverdue=Date.now()>deadlineMs(s)&&!completed(s); const box=document.getElementById('score');box.innerHTML=`<b>${score} / ${s.questions.length} · ${pct}점</b><br><span style="color:var(--muted)">${pct>=80?'좋음. 틀린 문제만 한 번 더 풀면 된다.':pct>=60?'틀린 개념을 오늘 설명에서 다시 확인해.':'기초 개념을 다시 보고 재도전하는 편이 낫다.'}${wasOverdue?' · 연체 처리 해제':''}</span>`;box.classList.add('show'); localStorage.setItem(key(s),JSON.stringify({answers:selected,graded:true,score,at:Date.now()})); refreshLocks(); if(!fromSaved)box.scrollIntoView({behavior:'smooth',block:'center'})}
-  render();
+  function choose(qi,ci){if(savedFor(sets[setIndex])?.graded)return;selected[qi]=ci;markSelected(qi,ci);updateBar()}
+  function updateBar(){const s=sets[setIndex],n=Object.keys(selected).length,b=document.getElementById('bar');if(b)b.style.width=`${100*n/s.questions.length}%`}
+
+  function gradeMain(fromSaved=false){
+    const s=sets[setIndex];let score=0;const wrong=[];
+    s.questions.forEach((q,i)=>{document.querySelectorAll(`[data-q="${i}"]`).forEach(b=>{b.disabled=true;const c=+b.dataset.c;b.classList.remove('selected');if(c===q.answer)b.classList.add('correct');else if(selected[i]===c)b.classList.add('wrong')});const ok=selected[i]===q.answer;if(ok)score++;else wrong.push(i);const a=document.getElementById(`a${i}`);a.innerHTML=`<b>${ok?'정답':'오답'} · ${q.answer+1}번</b><br>${esc(q.explanation||'')}${q.tip?`<br><span style="color:#71809a">TIP · ${esc(q.tip)}</span>`:''}`;a.classList.add('show')});
+    const pct=Math.round(score/s.questions.length*100),box=document.getElementById('score');box.innerHTML=`<b>${score} / ${s.questions.length} · ${pct}점</b><br><span style="color:var(--muted)">${wrong.length?`틀린 ${wrong.length}개 개념은 아래 보강문제로 바로 다시 확인한다.`:'전부 맞음. 이 세트는 바로 완료 처리된다.'}</span>`;box.classList.add('show');
+    let saved=savedFor(s)||{};
+    if(!fromSaved){saved={...saved,answers:selected,graded:true,score,wrongIndices:wrong,remediationDone:wrong.length===0,at:Date.now()};persist(s,saved)}
+    const actual=savedFor(s)||saved;
+    if(actual.wrongIndices?.length&&!actual.remediationDone)renderRemediation(actual.wrongIndices,actual);
+    if(!fromSaved)box.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+
+  function remediationItems(s,wrong){const out=[];wrong.forEach(qi=>(s.questions[qi].remediation||[]).forEach((r,ri)=>out.push({...r,qi,ri,id:`${qi}:${ri}`})));return out}
+  function renderRemediation(wrong,saved){
+    const s=sets[setIndex],items=remediationItems(s,wrong),host=document.getElementById('remediation');if(!items.length){saved.remediationDone=true;persist(s,saved);render();return}
+    remSelected=saved.remediationAnswers||{};
+    host.innerHTML=`<section class="remed"><div class="remed-head"><div><div class="remed-title">오답 보강</div><div class="small">틀린 본문 문제마다 변형 2문제. 전부 맞혀야 완료된다.</div></div><span class="remed-badge">${items.length}문제</span></div>${items.map((r,i)=>`<article class="rq"><div class="qnum">RETRY ${String(i+1).padStart(2,'0')} · 본문 ${r.qi+1}번</div><div class="prompt">${esc(r.prompt)}</div><div class="choices">${r.choices.map((c,j)=>`<button class="choice rchoice" data-r="${r.id}" data-c="${j}">${j+1}. ${esc(c)}</button>`).join('')}</div><div class="ranswer" id="ra-${r.qi}-${r.ri}"></div></article>`).join('')}<div id="remResult"></div><div class="remed-actions"><button class="btn primary" id="remSubmit">보강 채점하기</button></div></section>`;
+    document.querySelectorAll('.rchoice').forEach(b=>b.onclick=()=>{remSelected[b.dataset.r]=+b.dataset.c;document.querySelectorAll(`[data-r="${b.dataset.r}"]`).forEach(x=>x.classList.toggle('selected',x===b))});
+    Object.entries(remSelected).forEach(([id,ci])=>document.querySelectorAll(`[data-r="${id}"]`).forEach(b=>b.classList.toggle('selected',+b.dataset.c===+ci)));
+    document.getElementById('remSubmit').onclick=()=>gradeRemediation(items);
+  }
+  function gradeRemediation(items){
+    const s=sets[setIndex],saved=savedFor(s)||{};let correct=0;
+    items.forEach(r=>{const picked=remSelected[r.id],ok=picked===r.answer;if(ok)correct++;document.querySelectorAll(`[data-r="${r.id}"]`).forEach(b=>{b.disabled=true;const c=+b.dataset.c;b.classList.remove('selected');if(c===r.answer)b.classList.add('correct');else if(picked===c)b.classList.add('wrong')});const a=document.getElementById(`ra-${r.qi}-${r.ri}`);a.innerHTML=`<b>${ok?'정답':'오답'} · ${r.answer+1}번</b><br>${esc(r.explanation||'')}${r.tip?`<br><span style="color:#88734d">TIP · ${esc(r.tip)}</span>`:''}`;a.classList.add('show')});
+    const all=correct===items.length;const next={...saved,remediationAnswers:remSelected,remediationDone:all,at:Date.now()};persist(s,next);const result=document.getElementById('remResult');result.className=all?'complete':'notice';result.innerHTML=all?`<b>보강 완료 · ${correct}/${items.length}</b><br>틀린 개념을 변형문제까지 통과했다.`:`<b>보강 ${correct}/${items.length}</b><br>아직 틀린 문제가 있다. 해설을 확인한 뒤 한 번 더 풀어야 완료된다.`;
+    const btn=document.getElementById('remSubmit');if(all){btn.textContent='완료됨';btn.disabled=true;setTimeout(render,500)}else{btn.textContent='보강 다시 풀기';btn.onclick=()=>{next.remediationAnswers={};persist(s,next);render()}}
+  }
+
+  function updateAccount(){const s=authSession();accountBtn.textContent=s?.username?`${s.username} · 동기화`:'로그인';}
+  accountBtn.onclick=()=>openAuth();document.getElementById('authClose').onclick=()=>authDialog.close();
+  function openAuth(){const s=authSession();if(s?.token){authBody.innerHTML=`<div class="signed"><strong>${esc(s.username)}</strong><div class="sync">이 계정으로 문제 완료 기록이 기기 간 동기화된다.</div><button class="logout" id="syncNow">지금 동기화</button><button class="logout" id="logout">로그아웃</button></div>`;document.getElementById('syncNow').onclick=()=>syncProgress(true);document.getElementById('logout').onclick=logout}else{authBody.innerHTML=`<div class="small">이메일 없이 아이디와 비밀번호만 사용한다. 아이디는 영문 소문자·숫자·_ 조합 3~24자, 비밀번호는 6자 이상.</div><div class="field"><label>아이디</label><input id="username" autocomplete="username" placeholder="예: science01"></div><div class="field"><label>비밀번호</label><input id="password" type="password" autocomplete="current-password" placeholder="6자 이상"></div><div class="authactions"><button class="btn secondary" id="signup">계정 만들기</button><button class="btn primary" id="login">로그인</button></div><div class="authmsg" id="authMsg"></div>`;document.getElementById('login').onclick=()=>authAction('login');document.getElementById('signup').onclick=()=>authAction('signup');}authDialog.showModal()}
+  async function authAction(mode){const u=document.getElementById('username').value.trim().toLowerCase(),p=document.getElementById('password').value,msg=document.getElementById('authMsg');msg.textContent='처리 중…';try{const data=await rpc(mode==='login'?'science_drill_login':'science_drill_signup',{p_username:u,p_password:p});localStorage.setItem(sessionKey,JSON.stringify(data));msg.textContent='성공. 진도를 동기화하는 중…';await syncProgress(false);authDialog.close();toast(mode==='login'?'로그인됨':'계정 생성됨');render()}catch(e){const m=e.message||'';msg.textContent=m.includes('USERNAME_TAKEN')?'이미 사용 중인 아이디야.':m.includes('USERNAME_FORMAT')?'아이디 형식을 확인해.':m.includes('PASSWORD_LENGTH')?'비밀번호는 6~72자로 만들어.':m.includes('INVALID_LOGIN')?'아이디 또는 비밀번호가 맞지 않아.':'로그인 서버에 연결하지 못했어.'}}
+  async function syncProgress(showToast=true){const s=authSession();if(!s?.token)return;try{const remote=await rpc('science_drill_progress_get',{p_token:s.token});for(const row of remote.progress||[]){const local=JSON.parse(localStorage.getItem(`science-drill:${row.date}`)||'null'),r=row.data||{};if(!local||Number(r.at||0)>Number(local.at||0))localStorage.setItem(`science-drill:${row.date}`,JSON.stringify(r));else if(Number(local.at||0)>Number(r.at||0)){const set=sets.find(x=>x.date===row.date);if(set)await syncSave(set,local)}}for(const set of sets){const local=savedFor(set);if(local&&!((remote.progress||[]).some(x=>String(x.date)===set.date)))await syncSave(set,local)}if(showToast)toast('진도 동기화 완료');render()}catch(e){if(String(e.message).includes('INVALID_SESSION')){localStorage.removeItem(sessionKey);updateAccount();toast('로그인이 만료됐어. 다시 로그인해.')}else if(showToast)toast('동기화에 실패했어')}}
+  async function logout(){const s=authSession();localStorage.removeItem(sessionKey);authDialog.close();updateAccount();render();if(s?.token)rpc('science_drill_logout',{p_token:s.token}).catch(()=>{});toast('로그아웃됨')}
+
+  render();if(authSession()?.token)syncProgress(false);
   </script>
 </body>
 </html>
