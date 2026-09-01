@@ -1,0 +1,49 @@
+name: Visual Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "quiz-data.js"
+      - "visual-renderer.js"
+      - "tests/visual-audit.mjs"
+      - ".github/workflows/visual-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare static site
+        run: |
+          mkdir -p _site
+          cp index.html quiz-data.js visual-renderer.js _site/
+          sed -i 's|</body>|<script src="visual-renderer.js"></script></body>|' _site/index.html
+      - name: Install Playwright Chromium
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 >/dev/null
+          npx playwright install --with-deps chromium
+      - name: Serve site
+        run: |
+          python3 -m http.server 4173 -d _site > /tmp/science-http.log 2>&1 &
+          echo $! > /tmp/science-http.pid
+          sleep 2
+      - name: Run viewport audit
+        run: node tests/visual-audit.mjs
+      - name: Upload screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-audit
+          path: audit-artifacts/
+          if-no-files-found: error
