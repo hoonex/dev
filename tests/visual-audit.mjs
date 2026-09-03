@@ -18,6 +18,14 @@ const failures = [];
 
 function fail(kind, detail) { failures.push({ kind, detail }); }
 
+// QA must be able to inspect any set even when the learner-facing overdue gate disables history options.
+async function forceHistory(page, value) {
+  await page.locator('#history').evaluate((el, v) => {
+    el.value = String(v);
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }, value);
+}
+
 // Data contract audit: a bad generated set must fail CI before deployment is considered healthy.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -55,7 +63,7 @@ for (const vp of viewports) {
   for (const target of targets) {
     const found = options.find(o => o.text.includes(target.match));
     if (!found) { fail('missing-set', `${vp.name}: ${target.match}`); continue; }
-    await page.selectOption('#history', found.value);
+    await forceHistory(page, found.value);
     await page.waitForTimeout(200);
 
     const metrics = await page.evaluate(() => {
@@ -115,7 +123,7 @@ for (const vp of viewports) {
     const opts = await page.locator('#history option').evaluateAll(os => os.map(o => ({ value:o.value,text:o.textContent||'' })));
     const found = opts.find(o => o.text.includes(target.match));
     if (!found) { fail('functional-missing-set',target.match); continue; }
-    await page.selectOption('#history',found.value);
+    await forceHistory(page, found.value);
     await page.waitForTimeout(120);
 
     // Empty submit must not create false wrong answers.
