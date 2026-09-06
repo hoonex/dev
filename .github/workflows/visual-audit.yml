@@ -5,11 +5,10 @@ on:
     branches: [main]
     paths:
       - "index.html"
+      - "learning-data.js"
       - "quiz-data.js"
-      - "visual-renderer.js"
-      - "visual-responsive.js"
-      - "app-patch.js"
       - "tests/visual-audit.mjs"
+      - "QA_RULES.md"
       - ".github/workflows/visual-audit.yml"
   workflow_dispatch:
 
@@ -28,8 +27,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site
-          cp index.html quiz-data.js visual-renderer.js visual-responsive.js app-patch.js _site/
-          sed -i 's|</body>|<script src="visual-renderer.js"></script><script src="visual-responsive.js"></script><script src="app-patch.js"></script></body>|' _site/index.html
+          cp index.html learning-data.js quiz-data.js _site/
       - name: Install Playwright Chromium
         run: |
           npm init -y >/dev/null 2>&1
@@ -40,7 +38,7 @@ jobs:
           python3 -m http.server 4173 -d _site > /tmp/science-http.log 2>&1 &
           echo $! > /tmp/science-http.pid
           sleep 2
-      - name: Run viewport + retry audit
+      - name: Run guided learning audit
         run: node tests/visual-audit.mjs
       - name: Upload screenshots and report
         if: always()
