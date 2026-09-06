@@ -5,12 +5,10 @@ on:
     branches: [main]
     paths:
       - "index.html"
+      - "learning-data.js"
       - "quiz-data.js"
       - "quiz-data-2026-09-04.js"
       - "quiz-data-daily.js"
-      - "visual-renderer.js"
-      - "visual-responsive.js"
-      - "app-patch.js"
       - "tests/visual-audit.mjs"
       - "QA_RULES.md"
       - ".github/workflows/pages.yml"
@@ -39,9 +37,7 @@ jobs:
       - name: Prepare test site
         run: |
           mkdir -p _site
-          cp index.html quiz-data.js quiz-data-2026-09-04.js quiz-data-daily.js visual-renderer.js visual-responsive.js app-patch.js _site/
-          sed -i 's|<script src="quiz-data.js"></script>|<script src="quiz-data.js"></script><script src="quiz-data-2026-09-04.js"></script><script src="quiz-data-daily.js"></script>|' _site/index.html
-          sed -i 's|</body>|<script src="visual-renderer.js"></script><script src="visual-responsive.js"></script><script src="app-patch.js"></script></body>|' _site/index.html
+          cp index.html learning-data.js quiz-data.js quiz-data-2026-09-04.js quiz-data-daily.js _site/
       - name: Install Chromium
         run: |
           npm init -y >/dev/null 2>&1
@@ -51,7 +47,7 @@ jobs:
         run: |
           python3 -m http.server 4173 -d _site > /tmp/science-http.log 2>&1 &
           sleep 2
-      - name: Run viewport + retry QA
+      - name: Run guided learning QA
         run: node tests/visual-audit.mjs
       - name: Keep QA evidence
         if: always()
@@ -70,26 +66,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
-
       - name: Build static artifact
         run: |
           mkdir -p _site
-          cp index.html quiz-data.js quiz-data-2026-09-04.js quiz-data-daily.js visual-renderer.js visual-responsive.js app-patch.js _site/
-          sed -i "s|src=\"quiz-data.js\"|src=\"quiz-data.js?v=${GITHUB_SHA}\"|" _site/index.html
-          sed -i "s|<script src=\"quiz-data.js?v=${GITHUB_SHA}\"></script>|<script src=\"quiz-data.js?v=${GITHUB_SHA}\"></script><script src=\"quiz-data-2026-09-04.js?v=${GITHUB_SHA}\"></script><script src=\"quiz-data-daily.js?v=${GITHUB_SHA}\"></script>|" _site/index.html
-          sed -i "s|</body>|<script src=\"visual-renderer.js?v=${GITHUB_SHA}\"></script><script src=\"visual-responsive.js?v=${GITHUB_SHA}\"></script><script src=\"app-patch.js?v=${GITHUB_SHA}\"></script></body>|" _site/index.html
+          cp index.html learning-data.js quiz-data.js quiz-data-2026-09-04.js quiz-data-daily.js _site/
+          sed -i "s|src=\"learning-data.js\"|src=\"learning-data.js?v=${GITHUB_SHA}\"|" _site/index.html
           touch _site/.nojekyll
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
