@@ -12,6 +12,16 @@ This file records regressions that must not come back. Treat it as a release con
 - Returning to the home screen must preserve completed concepts and unit completion.
 - Progress and achievement feedback should be visible but secondary to learning content; do not turn the app into a points-only game.
 
+## Confirmed school scope contract
+- The authoritative school range is the 2026 Jeongdong High School grade-2 midterm range sheet supplied by the learner.
+- 역학과 에너지: 완자 p.10~97.
+- 물질과 에너지: 완자 p.10~71 and p.108~151.
+- For chemistry content, use the saved original `iteach4u_74219_물질과_에너지_본문_22개정2026판_260814_084929.pdf` ahead of derivative workbooks.
+- For physics, the range p.10~97 covers the first major section shown in the 2026 Wanja table of contents: 힘의 합성, 포물선 운동, 등속 원운동과 진자 운동, 케플러 법칙과 중력, 탈출 속도, 일반 상대성 이론. Do not silently drop the final 일반 상대성 이론 portion.
+- Guided-learning data must retain these physics unit ids: `p-vector`, `p-projectile`, `p-circle`, `p-gravity`, `p-escape`, `p-relativity`.
+- Guided-learning data must retain these chemistry unit ids: `c-gas`, `c-mixture`, `c-liquid`, `c-solid`, `c-enthalpy`, `c-hess`, `c-spontaneous`.
+- Pages after concept endpoints but still inside the official page range are school-test practice/review pages; the app must not treat the narrower derivative-workbook endpoints (such as p.64 or p.146) as the official range cutoff.
+
 ## Content contract
 - Explanations assume weak foundations and introduce only the prerequisite needed for the current concept.
 - Physics instructions should establish diagram, given values, target quantity, unit, and direction/sign before calculation where applicable.
