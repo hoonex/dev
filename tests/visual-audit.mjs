@@ -17,16 +17,28 @@ const report = [];
 const failures = [];
 const fail = (kind, detail) => failures.push({ kind, detail });
 
-// Learning data contract.
+// Learning data + confirmed school-scope contract.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   const schema = await page.evaluate(() => (window.LEARNING_TRACKS || []).map(t => ({
     id:t.id,
+    range:t.range || '',
     units:(t.units||[]).map(u => ({id:u.id,lessons:(u.lesson||[]).map((l,i)=>({i,choices:l.check?.choices?.length,answer:l.check?.answer,body:l.body||''}))}))
   })));
   if (schema.length < 2) fail('learning-data','expected physics and chemistry tracks');
+  const byId = Object.fromEntries(schema.map(t => [t.id, t]));
+  const required = {
+    physics:['p-vector','p-projectile','p-circle','p-gravity','p-escape','p-relativity'],
+    chemistry:['c-gas','c-mixture','c-liquid','c-solid','c-enthalpy','c-hess','c-spontaneous']
+  };
+  if (!byId.physics?.range.includes('p.10~97')) fail('scope-range','physics must show official p.10~97');
+  if (!byId.chemistry?.range.includes('p.10~71') || !byId.chemistry?.range.includes('p.108~151')) fail('scope-range','chemistry must show official p.10~71, p.108~151');
+  for (const [trackId, ids] of Object.entries(required)) {
+    const actual = new Set((byId[trackId]?.units || []).map(u => u.id));
+    for (const id of ids) if (!actual.has(id)) fail('scope-unit-missing',`${trackId}/${id}`);
+  }
   for (const t of schema) for (const u of t.units) {
     if (!u.lessons.length) fail('empty-unit',`${t.id}/${u.id}`);
     for (const l of u.lessons) {
@@ -37,7 +49,7 @@ const fail = (kind, detail) => failures.push({ kind, detail });
   await context.close();
 }
 
-// Legacy generated practice data must remain structurally healthy even though it is no longer the root UX.
+// Legacy generated practice data must remain available.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
@@ -59,12 +71,7 @@ for (const vp of viewports) {
     const metrics = await page.evaluate(() => {
       const vw=document.documentElement.clientWidth;
       const boxes=[...document.querySelectorAll('.hero,.unit,.tab')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right}});
-      return {
-        overflow:document.documentElement.scrollWidth-vw,
-        clipped:boxes.some(r=>r.left < -1 || r.right > vw+1),
-        units:document.querySelectorAll('.unit').length,
-        heroHeight:Math.round(document.querySelector('.hero')?.getBoundingClientRect().height||0)
-      };
+      return {overflow:document.documentElement.scrollWidth-vw,clipped:boxes.some(r=>r.left < -1 || r.right > vw+1),units:document.querySelectorAll('.unit').length};
     });
     report.push({viewport:vp.name,track,metrics});
     if (metrics.overflow > 2 || metrics.clipped) fail('home-layout',{viewport:vp.name,track,metrics});
@@ -85,7 +92,7 @@ for (const vp of viewports) {
   await context.close();
 }
 
-// Functional mastery flow: wrong answer cannot advance; correct retry advances exactly one concept and persists.
+// Wrong -> retry -> correct must advance exactly one concept and persist.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
@@ -109,8 +116,7 @@ for (const vp of viewports) {
   await page.waitForTimeout(80);
   const afterCorrect=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v1')||'{}')['physics:p-vector']?.doneSteps||0);
   if (afterCorrect !== 1) fail('correct-progress',`expected 1, got ${afterCorrect}`);
-  const buttonText=await page.locator('#grade').innerText();
-  if (!buttonText.includes('다음')) fail('continue-copy',buttonText);
+  if (!(await page.locator('#grade').innerText()).includes('다음')) fail('continue-copy',await page.locator('#grade').innerText());
   await page.reload({waitUntil:'networkidle'});
   const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v1')||'{}')['physics:p-vector']?.doneSteps||0);
   if (persisted !== 1) fail('progress-persistence',`expected 1, got ${persisted}`);
@@ -121,4 +127,4 @@ for (const vp of viewports) {
 await browser.close();
 await fs.writeFile('audit-artifacts/report.json',JSON.stringify({report,failures},null,2));
 console.log(JSON.stringify({audited:report.length,failures:failures.length,failuresDetail:failures},null,2));
-if(failures.length)process.exitCode=1;
+if(failures.length) process.exitCode=1;
