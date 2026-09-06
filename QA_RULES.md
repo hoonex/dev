@@ -1,48 +1,49 @@
-# Science Drill QA contract
+# Science Step QA contract
 
 This file records regressions that must not come back. Treat it as a release contract, not optional guidance.
 
+## Learning contract
+- The root experience is a guided study tool, not a quiz dashboard or marketing page.
+- A learner studies one concept at a time: explanation -> meaningful visual/formula -> one check question -> immediate feedback -> next concept.
+- Do not require knowledge from a later locked concept to answer the current check question.
+- A wrong answer must not advance progress. Explain the misconception in plain Korean and allow an immediate retry.
+- A correct answer advances exactly one concept and persists progress locally.
+- Finishing every concept in a unit unlocks the next unit.
+- Returning to the home screen must preserve completed concepts and unit completion.
+- Progress and achievement feedback should be visible but secondary to learning content; do not turn the app into a points-only game.
+
 ## Content contract
-- Every main question has exactly 4 choices and one answer index 0..3.
-- Every main question has exactly 2 remediation questions.
-- Every remediation question has exactly 4 choices and one answer index 0..3.
-- Remediation must test the same core concept in a changed representation or situation. Do not only reorder choices or swap a number.
-- If the main miss is visual/data interpretation, at least one retry should use a visual, graph, table, diagram, or another representation when the concept supports it.
-- A missing remediation bank must never be silently marked complete.
+- Explanations assume weak foundations and introduce only the prerequisite needed for the current concept.
+- Physics instructions should establish diagram, given values, target quantity, unit, and direction/sign before calculation where applicable.
+- Chemistry instructions should establish conditions, units, state/sign, and reaction coefficients before calculation where applicable.
+- Visuals/formulas must carry instructional meaning rather than being decorative.
+- School-test traps should be explained inside the lesson when they are central to the concept.
+- Content must stay within the declared midterm scope. User-made derivative workbooks are not authoritative scope sources.
 
-## Functional contract
-- Unanswered main questions must not be silently counted as wrong. Block grading and move the learner to the first unanswered question.
-- Intentionally answering every main question wrong must display exactly 2 similar-practice questions per missed main question.
-- Retry questions must be selectable and gradable.
-- A partial retry pass preserves already-correct retry questions. Correct retry questions must never be forced on the learner again.
-- After partial retry grading, only the still-wrong retry questions return.
-- The retry result must state in plain language how many similar questions are already correct and how many remain.
-- Solving the final remaining retry sets remediationDone=true.
-- Test sets do not affect overdue/progress logic.
-- Regular sets cannot be completed until required retries are passed.
-
-## Retry UX language contract
-- User-facing copy must describe the action, not internal mechanics.
-- Prefer: `틀린 문제 다시 연습`, `비슷한 문제`, `남은 N문제`, `틀린 N문제 다시 풀기`.
-- Do not show ambiguous internal terms such as `보강 1/2`, `오답 보강`, `완료 처리`, `remediation`, or bare fractions with no explanation.
-- Explain the loop once: `틀린 문제마다 비슷한 문제 2개 → 맞힌 건 끝 → 틀린 것만 다시 풀기 → 전부 맞히면 끝`.
+## Interaction contract
+- Every concept check has exactly four choices and one valid answer index 0..3.
+- No unanswered check can be graded.
+- Selecting a wrong choice shows explanatory feedback and keeps the learner on the same concept.
+- After retrying correctly, the learner can continue without reloading the page.
+- Locked units cannot be opened before the previous unit is fully completed.
 
 ## Visual contract
 Audit at: 390x844, 844x390, 768x1024, 1024x768, 1366x768, 1920x1080.
 - No body horizontal overflow.
-- No question choice or visual is clipped outside the viewport.
-- Short landscape viewports must not have sticky action bars covering diagrams.
-- Phone portrait compares multi-state piston diagrams vertically; larger viewports may use columns.
-- Graph ticks should use readable school-exam-style values, not arbitrary long decimals.
-- Vector labels must not overlap when vectors share a direction.
-- Projectile diagrams should use a physically sensible parabolic curve rather than a wavy generic spline.
+- No choice, instructional visual, formula, or action is clipped outside the viewport.
+- Phone portrait stacks paired instructional panels vertically when necessary.
+- Short landscape viewports must remain usable without fixed/sticky controls covering lesson content.
 - Diagram text must remain legible on phone portrait.
 
 ## UI contract
-- The site is a study tool, not a marketing landing page.
+- Claymorphism is allowed for tactile cards and controls, but contrast and readability take priority.
 - Avoid oversized English hero copy, decorative AI-style gradients, excessive glass effects, and giant rounded pills.
-- Keep the header compact and task-focused: exam, subjects, current status, account.
-- The current visual direction is neutral light gray/white with modest borders and restrained blue accents.
+- The home screen should immediately expose subject, unit, progress, estimated minutes, and completion state.
+- Completion feedback should feel rewarding but remain brief enough for classroom or break-time study.
+
+## Legacy drill data contract
+- Existing quiz-data.js remains valid practice data. Every main question has exactly 4 choices, answer 0..3, and exactly 2 remediation questions; every remediation has 4 choices and answer 0..3.
+- Test sets do not affect formal learning progress.
 
 ## Release gate
 `tests/visual-audit.mjs` is the automated acceptance test. A production Pages deployment must depend on this test passing. When a new user-reported regression appears, add a reproducible assertion here and/or to the automated test so the same class of error becomes harder to repeat.
