@@ -5,11 +5,14 @@ on:
     branches: [main]
     paths:
       - "index.html"
+      - "drill.html"
+      - "drill-app.js"
       - "learning-data.js"
       - "learning-app.js"
       - "quiz-data.js"
       - "quiz-data-2026-09-04.js"
       - "quiz-data-daily.js"
+      - "visual-renderer.js"
       - "tests/visual-audit.mjs"
       - "QA_RULES.md"
       - ".github/workflows/pages.yml"
@@ -38,7 +41,7 @@ jobs:
       - name: Prepare test site
         run: |
           mkdir -p _site
-          cp index.html learning-data.js learning-app.js quiz-data.js quiz-data-2026-09-04.js quiz-data-daily.js _site/
+          cp index.html drill.html drill-app.js visual-renderer.js learning-data.js learning-app.js quiz-data.js quiz-data-2026-09-04.js quiz-data-daily.js _site/
       - name: Install Chromium
         run: |
           npm init -y >/dev/null 2>&1
@@ -74,9 +77,12 @@ jobs:
       - name: Build static artifact
         run: |
           mkdir -p _site
-          cp index.html learning-data.js learning-app.js quiz-data.js quiz-data-2026-09-04.js quiz-data-daily.js _site/
+          cp index.html drill.html drill-app.js visual-renderer.js learning-data.js learning-app.js quiz-data.js quiz-data-2026-09-04.js quiz-data-daily.js _site/
           sed -i "s|src=\"learning-data.js\"|src=\"learning-data.js?v=${GITHUB_SHA}\"|" _site/index.html
           sed -i "s|src=\"learning-app.js\"|src=\"learning-app.js?v=${GITHUB_SHA}\"|" _site/index.html
+          sed -i "s|src=\"drill-app.js\"|src=\"drill-app.js?v=${GITHUB_SHA}\"|" _site/drill.html
+          sed -i "s|src=\"quiz-data.js\"|src=\"quiz-data.js?v=${GITHUB_SHA}\"|" _site/drill.html
+          sed -i "s|src=\"quiz-data-daily.js\"|src=\"quiz-data-daily.js?v=${GITHUB_SHA}\"|" _site/drill.html
           touch _site/.nojekyll
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
