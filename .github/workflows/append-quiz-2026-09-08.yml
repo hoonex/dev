@@ -1,0 +1,60 @@
+name: Append 2026-09-08 Quiz Set
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/append-quiz-2026-09-08.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  append:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Append validated formal set
+        env:
+          QUIZ_SET: >-
+            {"id":"2026-09-08","date":"2026-09-08","deadline":"2026-09-09T23:59:59+09:00","subject":"물질과 에너지","range":"고체 p.58~71 마무리 + 역학 누적 확인(등속 원운동·진자)","title":"9월 8일 · 고체 결정 분류와 전도성","note":"화학은 구성 입자→결합 방식→녹는점·전도성·기계적 성질 순서로 판단한다. 물리는 그림에서 중심·접선·주어진 값·구할 값·단위를 먼저 표시한다. 틀린 문제는 보강 2개를 모두 맞혀야 완료된다.","questions":[{"type":"개념","prompt":"결정성 고체와 비결정성 고체를 구분하는 가장 직접적인 기준으로 옳은 것은?","choices":["구성 입자의 규칙적 배열 여부","고체의 질량","색깔의 진하기","물에 녹는 속도"],"answer":0,"explanation":"결정성 고체는 구성 입자가 규칙적으로 배열되어 있고 녹는점이 일정한 반면, 비결정성 고체는 배열이 불규칙하고 녹는점이 일정하지 않다.","tip":"고체 분류의 첫 질문은 '입자 배열이 규칙적인가?'이다.","remediation":[{"prompt":"석영과 유리를 비교할 때 완자 기준으로 옳은 설명은?","choices":["둘 다 비결정성 고체이다","석영은 결정성, 유리는 비결정성이다","유리는 결정성, 석영은 비결정성이다","둘 다 녹는점이 일정하지 않다"],"answer":1,"explanation":"석영은 규칙적 배열을 가진 결정성 고체이고, 유리는 배열이 불규칙한 비결정성 고체이다.","tip":"같은 구성 원소가 있어도 배열 방식이 다를 수 있다."},{"prompt":"표의 A, B 중 비결정성 고체는?","visual":{"type":"table","headers":["고체","입자 배열","녹는점"],"rows":[["A","규칙적","일정"],["B","불규칙","일정하지 않음"]],"caption":"입자 배열과 녹는점 자료"},"choices":["A","B","둘 다","판단 불가"],"answer":1,"explanation":"불규칙한 입자 배열과 일정하지 않은 녹는점을 보이는 B가 비결정성 고체이다.","tip":"두 특징이 같은 방향으로 일치하는지 본다."}]},{"type":"표·자료해석","prompt":"표의 고체 X는 고체 상태에서는 전류가 흐르지 않지만 녹인 액체 상태에서는 전류가 흐른다. X의 결정 종류로 가장 적절한 것은?","visual":{"type":"table","headers":["상태","고체","액체"],"rows":[["전기 전도성","없음","있음"]],"caption":"X의 상태에 따른 전기 전도성"},"choices":["이온 결정","금속 결정","분자 결정","공유 결정"],"answer":0,"explanation":"이온 결정은 고체에서는 이온이 고정되어 전류가 흐르지 않지만, 액체에서는 이온이 자유롭게 이동해 전류가 흐른다.","tip":"이온 결정 함정: '이온이 있으니 고체도 전도'가 아니다. 이동 가능해야 한다.","remediation":[{"prompt":"NaCl 결정의 전기 전도성으로 옳은 것은?","choices":["고체 O, 액체 X","고체 X, 액체 O","고체 O, 액체 O","고체 X, 액체 X"],"answer":1,"explanation":"고체에서는 이온이 제자리에 묶여 있고, 용융되면 이동할 수 있어 전도성이 생긴다.","tip":"입자의 '존재'보다 '이동 가능성'을 본다."},{"prompt":"표의 A~C 중 이온 결정의 전도성 패턴과 일치하는 것은?","visual":{"type":"table","headers":["물질","고체 전도","액체 전도"],"rows":[["A","있음","있음"],["B","없음","있음"],["C","없음","없음"]]},"choices":["A","B","C","A와 C"],"answer":1,"explanation":"고체에서는 전도성이 없고 액체에서는 있는 B가 이온 결정의 전형적 패턴이다.","tip":"X→O 패턴을 기억한다."}]},{"type":"그림·자료해석","prompt":"금속 결정에서 외부 힘을 받아 원자층의 위치가 조금 어긋나도 쉽게 부서지지 않고 모양이 변할 수 있는 주된 이유는?","visual":{"type":"table","headers":["모형 요소","의미"],"rows":[["+ 격자","금속 양이온"],["이동 가능한 e⁻","자유 전자"]],"caption":"금속 결합 모형을 단순화한 자료"},"choices":["자유 전자가 이동하며 금속 결합을 계속 유지해서","금속 양이온이 모두 중성이 되어서","분자 간 힘이 완전히 사라져서","금속 원자가 이온 결정을 만들기 때문에"],"answer":0,"explanation":"금속 양이온 사이의 자유 전자가 이동하면서 정전기적 인력을 유지하므로 층이 밀려도 결합이 끊어져 바로 부서지지 않는다. 이것이 전성·연성과 연결된다.","tip":"금속 결정의 성질은 '자유 전자' 하나로 전도성·광택·전성·연성을 연결한다.","remediation":[{"prompt":"금속 결정의 전기 전도도와 열전도율이 큰 가장 직접적인 이유는?","choices":["자유 전자가 이동할 수 있어서","이온이 고체에서 자유롭게 이동해서","분자가 매우 가벼워서","녹는점이 낮아서"],"answer":0,"explanation":"금속 결정에는 이동 가능한 자유 전자가 있어 전하와 에너지를 전달한다.","tip":"금속=자유 전자."},{"prompt":"다음 표에서 금속 결정에 가장 가까운 물질은?","visual":{"type":"table","headers":["물질","고체 전도성","얇게 펴짐"],"rows":[["P","있음","가능"],["Q","없음","쉽게 부서짐"],["R","없음","불가"]]},"choices":["P","Q","R","판단 불가"],"answer":0,"explanation":"고체 상태 전도성과 전성이 함께 나타나는 P가 금속 결정에 해당한다.","tip":"한 성질만 보지 말고 여러 성질을 묶어 판단한다."}]},{"type":"개념·함정","prompt":"분자 결정과 공유 결정에 대한 설명으로 옳은 것은?","choices":["분자 결정은 분자 사이의 힘으로 결정이 형성된다","공유 결정은 분자 사이의 힘만으로 형성된다","분자 결정은 일반적으로 녹는점이 매우 높다","공유 결정은 모두 전기 전도성이 매우 크다"],"answer":0,"explanation":"분자 결정은 공유 결합으로 이루어진 '분자'들이 분자 간 힘으로 배열된 결정이다. 공유 결정은 원자들이 공유 결합으로 그물처럼 연결된다.","tip":"분자 내부의 공유 결합과 '결정을 붙잡는 힘'을 혼동하지 않는다.","remediation":[{"prompt":"드라이아이스 CO₂(s)가 속하는 결정 종류는?","choices":["이온 결정","금속 결정","분자 결정","공유 결정"],"answer":2,"explanation":"CO₂ 분자들이 분자 간 힘에 의해 배열되어 있으므로 분자 결정이다.","tip":"독립된 분자가 반복 단위면 분자 결정 가능성을 먼저 본다."},{"prompt":"다이아몬드에서 탄소 원자들이 결정 전체에 걸쳐 공유 결합으로 연결되어 있다는 자료가 주어졌다. 결정 종류는?","visual":{"type":"table","headers":["구성 입자","결정 전체 연결 방식"],"rows":[["C 원자","공유 결합 그물 구조"]]},"choices":["이온 결정","금속 결정","분자 결정","공유 결정"],"answer":3,"explanation":"원자들이 공유 결합으로 결정 전체에 연결된 구조는 공유 결정이다.","tip":"원자+공유결합 그물=공유 결정."}]},{"type":"표·복합자료","prompt":"A~D는 이온 결정, 금속 결정, 분자 결정, 공유 결정을 하나씩 나타낸다. 표를 바르게 해석한 것은?","visual":{"type":"table","headers":["결정","구성 입자","고체 전도성","녹는점 경향"],"rows":[["A","양이온·음이온","없음","높음"],["B","금속 양이온·자유 전자","있음","높음"],["C","분자","없음","낮음"],["D","원자","대부분 없음","매우 높음"]],"caption":"전형적인 성질을 비교한 표"},"choices":["A는 이온, B는 금속, C는 분자, D는 공유 결정이다","A는 금속, B는 이온, C는 공유, D는 분자 결정이다","C는 이온 결정이다","D는 모든 경우 전기 전도성이 있다"],"answer":0,"explanation":"구성 입자와 전도성, 녹는점 경향을 모두 보면 A 이온, B 금속, C 분자, D 공유 결정으로 대응된다.","tip":"구성 입자→결합→성질 순서로 표를 읽는다.","remediation":[{"prompt":"구성 입자가 분자이고 녹는점이 비교적 낮으며 전도성이 없는 결정은?","choices":["이온 결정","금속 결정","분자 결정","공유 결정"],"answer":2,"explanation":"분자들이 상대적으로 약한 분자 간 힘으로 결정을 이루므로 분자 결정의 전형적인 성질이다.","tip":"분자 결정은 결정을 붙드는 힘이 화학 결합보다 약하다."},{"prompt":"다음 분류 표에서 X에 들어갈 결정은?","visual":{"type":"table","headers":["질문","예","아니요"],"rows":[["고체에서 전류가 흐르는가?","금속 결정","다음 질문"],["액체에서 전류가 흐르는가?","X","분자/공유 결정"]]},"choices":["이온 결정","금속 결정","분자 결정","공유 결정"],"answer":0,"explanation":"고체에서는 전류가 흐르지 않지만 액체에서는 흐르는 대표적인 결정은 이온 결정이다.","tip":"분류 흐름도는 조건을 위에서부터 하나씩 적용한다."}]},{"type":"실험·자료해석","prompt":"고체 상태와 수용액 상태의 전기 전도성을 조사했다. 결과만으로 A, B, C를 가장 잘 분류한 것은?","visual":{"type":"table","headers":["물질","고체 전도","수용액 전도","기타"],"rows":[["A","있음","-","얇게 펴짐"],["B","없음","있음","단단하지만 잘 부서짐"],["C","없음","없음","비교적 낮은 녹는점"]],"caption":"- 는 해당 상태를 만들지 않았음을 뜻한다."},"choices":["A 금속, B 이온, C 분자 결정","A 이온, B 금속, C 공유 결정","A 공유, B 분자, C 금속 결정","A 분자, B 이온, C 금속 결정"],"answer":0,"explanation":"A는 고체 전도성과 전성 때문에 금속 결정, B는 고체 비전도·수용액 전도·취성 때문에 이온 결정, C는 비전도·낮은 녹는점 때문에 분자 결정에 가깝다.","tip":"실험자료는 한 열만 보지 말고 전도성+기계적 성질+녹는점을 묶는다.","remediation":[{"prompt":"어떤 고체 X가 단단하지만 충격에 쉽게 쪼개지고, 녹인 상태에서 전류가 흐른다. X는?","choices":["이온 결정","금속 결정","분자 결정","비결정성 고체라고만 단정"],"answer":0,"explanation":"취성과 용융 상태 전도성은 이온 결정의 대표적인 성질이다.","tip":"이온 결정은 힘을 받으면 같은 전하끼리 가까워져 반발로 부서질 수 있다."},{"prompt":"표에서 공유 결정일 가능성이 가장 높은 것은?","visual":{"type":"table","headers":["물질","녹는점","고체 전도"],"rows":[["P","낮음","없음"],["Q","매우 높음","없음"],["R","높음","있음"]]},"choices":["P","Q","R","모두"],"answer":1,"explanation":"매우 높은 녹는점과 일반적인 비전도성은 공유 결정의 전형적 특징이다.","tip":"공유 결정은 예외인 흑연을 따로 기억한다."}]},{"type":"계산·누적복습","prompt":"반지름 2.0 m인 원을 속력 8.0 m/s로 등속 원운동한다. 구심가속도 크기는?","choices":["4 m/s²","16 m/s²","32 m/s²","64 m/s²"],"answer":2,"explanation":"a=v²/r=8²/2=32 m/s²이다.","tip":"물리 계산: 그림→주어진 v,r→구할 a→단위 m/s²→a=v²/r.","remediation":[{"prompt":"속력 6 m/s, 반지름 3 m인 등속 원운동의 구심가속도는?","choices":["2 m/s²","6 m/s²","12 m/s²","18 m/s²"],"answer":2,"explanation":"a=6²/3=12 m/s²이다.","tip":"속력을 먼저 제곱한다."},{"prompt":"표의 A, B 중 구심가속도가 큰 것은?","visual":{"type":"table","headers":["운동","속력","반지름"],"rows":[["A","4 m/s","1 m"],["B","6 m/s","3 m"]]},"choices":["A","B","같다","판단 불가"],"answer":0,"explanation":"A는 16 m/s², B는 12 m/s²이므로 A가 크다.","tip":"v만 비교하지 말고 v²/r을 각각 계산한다."}]},{"type":"그림·누적복습","prompt":"물체가 원의 오른쪽 끝에서 반시계 방향 등속 원운동 중이다. 순간 속도 v와 구심가속도 a의 방향 조합으로 옳은 것은?","visual":{"type":"vectors","vectors":[{"x":0,"y":-120,"label":"v"},{"x":-120,"y":0,"label":"a"}],"caption":"원의 중심은 물체의 왼쪽에 있다."},"choices":["v 위쪽, a 왼쪽","v 왼쪽, a 위쪽","v 아래쪽, a 오른쪽","v 오른쪽, a 아래쪽"],"answer":0,"explanation":"반시계 방향으로 오른쪽 끝을 지날 때 속도는 접선인 위쪽이고, 구심가속도는 중심인 왼쪽을 향한다.","tip":"속도=접선, 가속도=중심. 두 방향을 따로 그린다.","remediation":[{"prompt":"등속 원운동에서 구심가속도가 생기는 이유는?","choices":["속력만 계속 커져서","속도의 방향이 계속 바뀌어서","질량이 줄어서","중력이 항상 사라져서"],"answer":1,"explanation":"속력은 일정하지만 속도 벡터의 방향이 계속 변하므로 가속도가 존재한다.","tip":"속도는 크기+방향이다."},{"prompt":"그림에서 원의 위쪽 지점을 오른쪽으로 지나는 물체의 가속도 방향은?","visual":{"type":"vectors","vectors":[{"x":120,"y":0,"label":"v"},{"x":0,"y":120,"label":"a"}],"caption":"원의 중심은 물체의 아래쪽에 있다."},"choices":["오른쪽","왼쪽","위쪽","아래쪽"],"answer":3,"explanation":"구심가속도는 항상 중심을 향하므로 아래쪽이다.","tip":"진행 방향보다 중심 위치가 우선이다."}]},{"type":"계산·진자","prompt":"같은 장소에서 단진자 A의 길이가 L, B의 길이가 4L이다. 작은 진폭에서 B의 주기는 A의 몇 배인가?","choices":["1/2배","같다","2배","4배"],"answer":2,"explanation":"T=2π√(L/g)이므로 주기는 길이의 제곱근에 비례한다. √4=2이므로 2배이다.","tip":"진자 계산: g가 같으면 T∝√L, 추의 질량은 지운다.","remediation":[{"prompt":"길이가 9L인 진자의 주기는 길이 L인 진자의 몇 배인가?","choices":["1/3배","3배","9배","81배"],"answer":1,"explanation":"T∝√L이므로 √9=3배이다.","tip":"길이 배수에 제곱근."},{"prompt":"표의 진자 중 주기가 가장 짧은 것은? 같은 장소, 작은 진폭이다.","visual":{"type":"table","headers":["진자","길이","추 질량"],"rows":[["P","L","m"],["Q","L/4","5m"],["R","4L","m/2"]]},"choices":["P","Q","R","질량 때문에 판단 불가"],"answer":1,"explanation":"주기는 질량과 무관하고 길이가 짧을수록 짧다. Q의 길이가 L/4로 가장 짧다.","tip":"질량 열은 함정 값이다."}]},{"type":"복합·고난도","prompt":"미지의 결정 X, Y, Z에 대한 자료를 종합해 옳게 분류한 것은?","visual":{"type":"table","headers":["물질","자료 1","자료 2","자료 3"],"rows":[["X","고체 전도 O","전성 O","금속 광택"],["Y","고체 전도 X","용융 전도 O","충격에 잘 부서짐"],["Z","고체 전도 X","녹는점 매우 높음","원자들이 공유 결합으로 연결"]],"caption":"각 자료는 같은 시료에서 얻었다."},"choices":["X 금속 / Y 이온 / Z 공유 결정","X 이온 / Y 금속 / Z 분자 결정","X 분자 / Y 공유 / Z 금속 결정","X 공유 / Y 분자 / Z 이온 결정"],"answer":0,"explanation":"X는 자유 전자와 전성의 금속 결정, Y는 고체 비전도·용융 전도·취성의 이온 결정, Z는 원자 공유결합 그물 구조의 공유 결정이다.","tip":"고난도 분류는 '구성 입자·이동 가능한 입자·결합 방식' 세 축으로 정리한다.","remediation":[{"prompt":"물질 A가 낮은 녹는점, 전도성 없음, 독립된 분자로 구성되어 있다. 가장 적절한 분류는?","choices":["이온 결정","금속 결정","분자 결정","공유 결정"],"answer":2,"explanation":"독립된 분자들이 분자 간 힘으로 배열되고 녹는점이 낮은 특징은 분자 결정에 해당한다.","tip":"분자 단위+낮은 녹는점."},{"prompt":"분류 흐름에서 (가)에 들어갈 가장 적절한 것은?","visual":{"type":"table","headers":["관찰","판정"],"rows":[["고체에서 전류 O","금속 결정"],["고체 X, 액체 O","이온 결정"],["고체 X, 액체 X, 매우 높은 녹는점","(가)"],["고체 X, 액체 X, 낮은 녹는점","분자 결정"]]},"choices":["이온 결정","금속 결정","분자 결정","공유 결정"],"answer":3,"explanation":"전도성이 없고 매우 높은 녹는점을 가지는 전형적인 결정은 공유 결정이다(흑연은 전도성 예외).","tip":"흑연 예외를 제외한 전형적 성질로 판정한다."}]}]}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const set = JSON.parse(process.env.QUIZ_SET);
+          const file = 'quiz-data.js';
+          let src = fs.readFileSync(file, 'utf8');
+          if (src.includes(`id:'${set.id}'`) || src.includes(`\"id\":\"${set.id}\"`)) {
+            console.log(`${set.id} already exists; no change`);
+            process.exit(0);
+          }
+          const end = src.lastIndexOf('];');
+          if (end < 0) throw new Error('window.QUIZ_SETS closing token not found');
+          const before = src.slice(0, end).trimEnd();
+          src = `${before.endsWith(',') ? before : before + ','}\n  ${JSON.stringify(set)}\n];\n`;
+          fs.writeFileSync(file, src);
+          NODE
+      - name: Validate entire quiz data
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),vm=require('vm');
+          const context={window:{}};
+          vm.createContext(context);
+          vm.runInContext(fs.readFileSync('quiz-data.js','utf8'),context);
+          const sets=context.window.QUIZ_SETS||[];
+          for(const s of sets) for(const [i,q] of (s.questions||[]).entries()) {
+            if(q.choices?.length!==4 || !Number.isInteger(q.answer) || q.answer<0 || q.answer>3) throw new Error(`${s.id} main ${i}`);
+            if(q.remediation?.length!==2) throw new Error(`${s.id} remediation count ${i}`);
+            for(const [j,r] of q.remediation.entries()) if(r.choices?.length!==4 || !Number.isInteger(r.answer) || r.answer<0 || r.answer>3) throw new Error(`${s.id} remediation ${i}/${j}`);
+          }
+          if(!sets.some(s=>s.id==='2026-09-08')) throw new Error('2026-09-08 set missing');
+          console.log('quiz schema OK',sets.length);
+          NODE
+      - name: Commit quiz data
+        run: |
+          if git diff --quiet -- quiz-data.js; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quiz-data.js
+          git commit -m "feat: add 2026-09-08 solid-state drill"
+          git push
