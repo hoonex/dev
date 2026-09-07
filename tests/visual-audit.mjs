@@ -49,13 +49,26 @@ const fail = (kind, detail) => failures.push({ kind, detail });
   await context.close();
 }
 
-// Legacy generated practice data must remain available.
+// Formal daily drill contract: today's set must be present and every wrong main question must have exactly two valid remediation questions.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
-  await page.goto(new URL('quiz-data.js', baseURL).href);
-  const text = await page.locator('body').innerText().catch(()=> '');
-  if (!text.includes('window.QUIZ_SETS')) fail('legacy-data','quiz-data.js missing or unreadable');
+  await page.goto(new URL('drill.html?set=2026-09-08', baseURL).href, { waitUntil:'networkidle' });
+  await page.waitForSelector('.qcard');
+  const schema = await page.evaluate(() => {
+    const s=(window.QUIZ_SETS||[]).find(x=>x?.id==='2026-09-08');
+    return s ? {id:s.id,date:s.date,deadline:s.deadline,questions:s.questions.map((q,i)=>({i,choices:q.choices?.length,answer:q.answer,rem:(q.remediation||[]).map((r,j)=>({j,choices:r.choices?.length,answer:r.answer}))}))} : null;
+  });
+  if (!schema) fail('daily-set-missing','2026-09-08');
+  else {
+    if (schema.date !== '2026-09-08' || schema.deadline !== '2026-09-09T23:59:59+09:00') fail('daily-set-metadata',schema);
+    if (schema.questions.length < 8 || schema.questions.length > 12) fail('daily-question-count',schema.questions.length);
+    for (const q of schema.questions) {
+      if (q.choices !== 4 || !Number.isInteger(q.answer) || q.answer < 0 || q.answer > 3) fail('daily-main-schema',q);
+      if (q.rem.length !== 2) fail('daily-remediation-count',q);
+      for (const r of q.rem) if (r.choices !== 4 || !Number.isInteger(r.answer) || r.answer < 0 || r.answer > 3) fail('daily-remediation-schema',{q:q.i,r});
+    }
+  }
   await context.close();
 }
 
@@ -70,12 +83,13 @@ for (const vp of viewports) {
     await page.waitForTimeout(80);
     const metrics = await page.evaluate(() => {
       const vw=document.documentElement.clientWidth;
-      const boxes=[...document.querySelectorAll('.hero,.unit,.tab')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right}});
-      return {overflow:document.documentElement.scrollWidth-vw,clipped:boxes.some(r=>r.left < -1 || r.right > vw+1),units:document.querySelectorAll('.unit').length};
+      const boxes=[...document.querySelectorAll('.hero,.unit,.tab,.daily-entry')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right}});
+      return {overflow:document.documentElement.scrollWidth-vw,clipped:boxes.some(r=>r.left < -1 || r.right > vw+1),units:document.querySelectorAll('.unit').length,dailyEntry:Boolean(document.querySelector('.daily-entry'))};
     });
     report.push({viewport:vp.name,track,metrics});
     if (metrics.overflow > 2 || metrics.clipped) fail('home-layout',{viewport:vp.name,track,metrics});
     if (!metrics.units) fail('unit-missing',`${vp.name}/${track}`);
+    if (!metrics.dailyEntry) fail('daily-entry-missing',vp.name);
 
     await page.locator('.unit:not(.locked)').first().click();
     await page.waitForSelector('.lesson-card');
@@ -89,10 +103,22 @@ for (const vp of viewports) {
     await page.screenshot({path:`audit-artifacts/${vp.name}-${track}-lesson.png`,fullPage:true});
     await page.locator('#back').click();
   }
+
+  await page.goto(new URL('drill.html?set=2026-09-08', baseURL).href,{waitUntil:'networkidle'});
+  await page.waitForSelector('.qcard');
+  const drillMetrics=await page.evaluate(()=>{
+    const vw=document.documentElement.clientWidth;
+    const els=[...document.querySelectorAll('.set-head,.qcard,.choice,.visual,.primary')];
+    return {overflow:document.documentElement.scrollWidth-vw,clipped:els.some(el=>{const r=el.getBoundingClientRect();return r.left < -1 || r.right > vw+1}),questions:document.querySelectorAll('.qcard').length,choices:document.querySelectorAll('.qcard>.choices .choice').length};
+  });
+  report.push({viewport:vp.name,track:'daily-drill',metrics:drillMetrics});
+  if (drillMetrics.overflow > 2 || drillMetrics.clipped) fail('drill-layout',{viewport:vp.name,drillMetrics});
+  if (drillMetrics.questions !== 10 || drillMetrics.choices !== 40) fail('drill-render',{viewport:vp.name,drillMetrics});
+  await page.screenshot({path:`audit-artifacts/${vp.name}-daily-drill.png`,fullPage:true});
   await context.close();
 }
 
-// Wrong -> retry -> correct must advance exactly one concept and persist.
+// Wrong -> retry -> correct must advance exactly one guided concept and persist.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
@@ -121,6 +147,41 @@ for (const vp of viewports) {
   const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v1')||'{}')['physics:p-vector']?.doneSteps||0);
   if (persisted !== 1) fail('progress-persistence',`expected 1, got ${persisted}`);
   await page.screenshot({path:'audit-artifacts/functional-guided-learning.png',fullPage:true});
+  await context.close();
+}
+
+// Daily drill flow: one wrong main answer creates two remediation questions; a wrong remediation cannot complete the set.
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const page = await context.newPage();
+  await page.goto(new URL('drill.html?set=2026-09-08', baseURL).href,{waitUntil:'networkidle'});
+  await page.evaluate(()=>localStorage.clear());
+  await page.reload({waitUntil:'networkidle'});
+  const answers=await page.evaluate(()=>window.QUIZ_SETS.find(s=>s.id==='2026-09-08').questions.map(q=>q.answer));
+  for(let i=0;i<answers.length;i++){
+    const choice=i===0?(answers[i]+1)%4:answers[i];
+    await page.locator(`[data-main="${i}"][data-choice="${choice}"]`).click();
+  }
+  await page.locator('#gradeMain').click();
+  await page.waitForSelector('.remed-wrap');
+  const wrongIndices=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-drill-v4:2026-09-08')||'{}').wrongIndices||[]);
+  if (JSON.stringify(wrongIndices)!=='[0]') fail('drill-main-wrong-state',wrongIndices);
+  if (await page.locator('[data-rem-card]').count() !== 2) fail('drill-remediation-render',await page.locator('[data-rem-card]').count());
+  const remAnswers=await page.evaluate(()=>window.QUIZ_SETS.find(s=>s.id==='2026-09-08').questions[0].remediation.map(r=>r.answer));
+  await page.locator(`[data-rem="0:0"][data-choice="${(remAnswers[0]+1)%4}"]`).click();
+  await page.locator(`[data-rem="0:1"][data-choice="${remAnswers[1]}"]`).click();
+  await page.locator('#gradeRem').click();
+  await page.waitForTimeout(100);
+  if (await page.locator('.done').count()) fail('drill-completed-after-wrong-remediation','completion appeared too early');
+  if (await page.locator('[data-rem-card]').count() !== 1) fail('drill-remediation-pending-count',await page.locator('[data-rem-card]').count());
+  await page.locator(`[data-rem="0:0"][data-choice="${remAnswers[0]}"]`).click();
+  await page.locator('#gradeRem').click();
+  await page.waitForSelector('.done');
+  const complete=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-drill-v4:2026-09-08')||'{}').completed===true);
+  if (!complete) fail('drill-completion-persistence','completed flag missing');
+  await page.reload({waitUntil:'networkidle'});
+  if (!(await page.locator('.done').count())) fail('drill-completion-reload','completion not restored after reload');
+  await page.screenshot({path:'audit-artifacts/functional-daily-remediation.png',fullPage:true});
   await context.close();
 }
 
