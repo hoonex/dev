@@ -1,65 +1,45 @@
 # Science Step QA contract
 
-This file records regressions that must not come back. Treat it as a release contract, not optional guidance.
+이 파일은 정동고 2학년 2학기 중간고사 학습 사이트의 회귀 방지 계약이다. 배포 편의보다 학습 정확성·실사용성이 우선이다.
 
-## Learning contract
-- The root experience is a guided study tool, not a quiz dashboard or marketing page.
-- A learner studies one concept at a time. The concept screen must teach before it tests: prerequisite -> intuition/plain explanation -> meaningful visual/formula -> why it works -> worked example -> school-test solving order -> trap -> one check question -> immediate feedback -> next concept.
-- The learner must be able to press an explicit `아직 이해 안 됨` control before answering and receive an alternative, easier explanation or analogy without losing the current step.
-- A wrong answer must not advance progress. It must automatically expose the easier explanation, explain the misconception in plain Korean, and allow an immediate retry.
-- A correct answer advances exactly one concept and persists progress locally.
-- Finishing every concept in a unit unlocks the next unit.
-- Returning to the home screen must preserve completed concepts and unit completion.
-- Progress and achievement feedback should be visible but secondary to learning content; do not turn the app into a points-only game.
-- Calendar milestones do not mark concepts complete. Only concepts the learner actually answers correctly may contribute to the guided-learning completion percentage.
-- Demo/QA interactions from the older v1 learning engine must not count as real study progress. The real guided-learning store is `science-step-progress-v2`.
-- The learner may explicitly reset only guided-learning progress to 0%; doing so must not erase the independent daily-drill history.
+## 1. 범위·근거 계약
+- 학교 공식 범위는 역학과 에너지 완자 p.10~97, 물질과 에너지 완자 p.10~71 및 p.108~151이다.
+- 화학은 저장된 2022 개정 2026판 완자 원본을 파생 워크북보다 우선한다.
+- 물리 학습 트리는 힘의 합성/분해, 포물선, 등속 원운동·진자, 케플러·중력, 탈출 속도, 일반 상대성 이론을 모두 포함해야 한다.
+- 필수 physics id: p-vector, p-projectile, p-circle, p-gravity, p-escape, p-relativity.
+- 필수 chemistry id: c-gas, c-mixture, c-liquid, c-solid, c-enthalpy, c-hess, c-spontaneous.
+- 임의의 과거 요약/워크북 페이지를 학교 범위 근거로 쓰지 않는다.
 
-## Confirmed school scope contract
-- The authoritative school range is the 2026 Jeongdong High School grade-2 midterm range sheet supplied by the learner.
-- 역학과 에너지: 완자 p.10~97.
-- 물질과 에너지: 완자 p.10~71 and p.108~151.
-- For chemistry content, use the saved original `iteach4u_74219_물질과_에너지_본문_22개정2026판_260814_084929.pdf` ahead of derivative workbooks.
-- For physics, the range p.10~97 covers the first major section shown in the 2026 Wanja table of contents: 힘의 합성, 포물선 운동, 등속 원운동과 진자 운동, 케플러 법칙과 중력, 탈출 속도, 일반 상대성 이론. Do not silently drop the final 일반 상대성 이론 portion.
-- Guided-learning data must retain these physics unit ids: `p-vector`, `p-projectile`, `p-circle`, `p-gravity`, `p-escape`, `p-relativity`.
-- Guided-learning data must retain these chemistry unit ids: `c-gas`, `c-mixture`, `c-liquid`, `c-solid`, `c-enthalpy`, `c-hess`, `c-spontaneous`.
-- Pages after concept endpoints but still inside the official page range are school-test practice/review pages; the app must not treat the narrower derivative-workbook endpoints (such as p.64 or p.146) as the official range cutoff.
+## 2. 학습 경험 계약
+- 첫 화면은 퀴즈 대시보드가 아니라 실제 공부를 시작하는 guided tutor여야 한다.
+- 진행도는 날짜가 아니라 사용자가 실제로 맞혀 통과한 개념 수로 계산한다.
+- 한 개념 화면은 최소 다음 순서를 갖는다: 30초 선수개념 → 핵심 설명 → 의미 있는 시각/공식 → 왜 그런지 → 쉬운 예제 → 문제 풀이 루틴 → 내신 함정 → 10초 회상 → 확인 문제.
+- 물리는 그림 → 주어진 값 → 구할 값 → 단위 → 방향/부호 습관을 노출한다.
+- 화학은 조건 → 단위 → 상태 → 부호 → 반응식 계수 습관을 노출한다.
+- 설명은 기초가 약한 학생을 기준으로 하되 해당 개념에 필요한 선수개념만 짧게 보충한다.
+- “이해 안 됨” 버튼은 같은 문장을 반복하지 말고 다른 비유/표현을 제공해야 한다.
+- 오답은 진도를 올리지 않고 개념별 오답 횟수에 기록되어야 한다.
+- 정답은 정확히 한 개념만 진행시키고 localStorage에 지속되어야 한다.
+- 이전 단원을 완료하기 전 다음 단원은 잠겨 있어야 한다.
+- 시험일까지 남은 개념과 하루 권장량은 현재 진도에서 계산하되, 자동 완료 처리는 금지한다.
 
-## Content contract
-- Explanations assume weak foundations and introduce only the prerequisite needed for the current concept.
-- Every concept screen must include a visible, subject-specific solving habit: physics establishes diagram, given values, target quantity, unit, and direction/sign before calculation; chemistry establishes conditions, units, state/sign, and reaction coefficients before calculation.
-- Formulae must be motivated by a plain-language physical or chemical idea before the learner is asked to use them.
-- Worked examples must be easier than or comparable to the concept check and must demonstrate the solving order instead of dropping a final formula only.
-- Visuals/formulas must carry instructional meaning rather than being decorative.
-- School-test traps should be explained inside the lesson when they are central to the concept.
-- Content must stay within the declared midterm scope. User-made derivative workbooks are not authoritative scope sources.
+## 3. 시각·UI 계약
+- claymorphism은 카드·버튼 촉감에만 사용하고 본문 대비와 가독성이 우선이다.
+- 장식용 그래프보다 답/이해를 결정하는 시각 자료를 우선한다.
+- 390x844, 844x390, 768x1024, 1024x768, 1366x768, 1920x1080에서 가로 overflow나 중요 컨트롤 clipping이 없어야 한다.
+- 짧은 가로 화면에서 fixed/sticky 요소가 본문을 덮으면 안 된다.
+- 모바일에서는 학습 블록과 선택지가 한 열로 자연스럽게 읽혀야 한다.
+- 첫 화면에서 남은 기간, 실제 진도, 이어하기, 과목/단원 상태를 즉시 파악할 수 있어야 한다.
 
-## Interaction contract
-- Every concept check has exactly four choices and one valid answer index 0..3.
-- No unanswered check can be graded.
-- Selecting a wrong choice shows explanatory feedback, records the confusion for later review, exposes the alternate explanation, and keeps the learner on the same concept.
-- After retrying correctly, the learner can continue without reloading the page.
-- Locked units cannot be opened before the previous unit is fully completed.
-- `아직 이해 안 됨` must not increment progress or mistakes by itself.
+## 4. 확인문제·보강 계약
+- guided concept check는 선택지 정확히 4개, answer는 0..3이다.
+- 답을 고르기 전 채점할 수 없어야 한다.
+- 오답 후 같은 화면에서 재시도 가능해야 한다.
+- 오답 시 alternate/rescue 설명이 자동으로 열려야 한다.
+- daily drill의 기존 window.QUIZ_SETS 데이터 계약은 유지한다: 본문 choices=4, answer 0..3, remediation 정확히 2개, 각 remediation도 choices=4, answer 0..3.
+- 9/1 test:true 세트는 정식 진도에 포함하지 않는다.
 
-## Visual contract
-Audit at: 390x844, 844x390, 768x1024, 1024x768, 1366x768, 1920x1080.
-- No body horizontal overflow.
-- No choice, instructional visual, formula, tutor panel, rescue explanation, or action is clipped outside the viewport.
-- Phone portrait stacks paired instructional panels vertically when necessary.
-- Short landscape viewports must remain usable without fixed/sticky controls covering lesson content.
-- Diagram text must remain legible on phone portrait.
-
-## UI contract
-- Claymorphism is allowed for tactile cards and controls, but contrast and readability take priority.
-- Avoid oversized English hero copy, decorative AI-style gradients, excessive glass effects, and giant rounded pills.
-- The home screen should immediately expose subject, unit, actual progress, estimated minutes, and completion state.
-- The home copy must make clear that the site teaches the concept before drilling it.
-- Completion feedback should feel rewarding but remain brief enough for classroom or break-time study.
-
-## Legacy drill data contract
-- Existing quiz-data.js remains valid practice data. Every main question has exactly 4 choices, answer 0..3, and exactly 2 remediation questions; every remediation has 4 choices and answer 0..3.
-- Test sets do not affect formal learning progress.
-
-## Release gate
-`tests/visual-audit.mjs` is the automated acceptance test. A production Pages deployment must depend on this test passing. When a new user-reported regression appears, add a reproducible assertion here and/or to the automated test so the same class of error becomes harder to repeat.
+## 5. 배포 게이트
+- tests/visual-audit.mjs가 위 계약의 핵심 흐름과 6개 viewport를 자동 검사한다.
+- Deploy Daily Science Drill의 quality_gate가 success이기 전 deploy 성공을 완료로 간주하지 않는다.
+- 사용자에게 “웹 갱신 완료”라고 말하는 것은 quality_gate와 deploy가 둘 다 success인 경우뿐이다.
