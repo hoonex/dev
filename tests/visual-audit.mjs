@@ -46,10 +46,18 @@ const fail = (kind, detail) => failures.push({ kind, detail });
       if (l.body.length < 45) fail('explanation-too-short',`${t.id}/${u.id}/${l.i}`);
     }
   }
+  const tutorContract = await page.evaluate(() => ({
+    hero: document.querySelector('.hero-main h1')?.innerText || '',
+    reset: Boolean(document.querySelector('#resetStudy')),
+    firstUnlocked: Boolean(document.querySelector('.unit:not(.locked)'))
+  }));
+  if (!tutorContract.hero.includes('처음부터 이해')) fail('tutor-home-copy',tutorContract.hero);
+  if (!tutorContract.reset) fail('reset-control-missing','guided progress reset must exist');
+  if (!tutorContract.firstUnlocked) fail('initial-unit-unavailable','first unit must be open');
   await context.close();
 }
 
-// Formal daily drill contract: today's set must be present and every wrong main question must have exactly two valid remediation questions.
+// Formal daily drill contract.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
@@ -95,11 +103,28 @@ for (const vp of viewports) {
     await page.waitForSelector('.lesson-card');
     const lessonMetrics=await page.evaluate(()=>{
       const vw=document.documentElement.clientWidth;
-      const els=[...document.querySelectorAll('.lesson-card,.visual,.choice,.btn')];
-      return {overflow:document.documentElement.scrollWidth-vw,clipped:els.some(el=>{const r=el.getBoundingClientRect();return r.left < -1 || r.right > vw+1}),choiceCount:document.querySelectorAll('.choice').length};
+      const els=[...document.querySelectorAll('.lesson-card,.visual,.choice,.btn,.tutor-section,.tutor-note,.rescue-toggle')];
+      return {
+        overflow:document.documentElement.scrollWidth-vw,
+        clipped:els.some(el=>{const r=el.getBoundingClientRect();return r.left < -1 || r.right > vw+1}),
+        choiceCount:document.querySelectorAll('.choice').length,
+        tutorSections:document.querySelectorAll('.tutor-section').length,
+        rescueToggle:Boolean(document.querySelector('.rescue-toggle')),
+        studyRule:document.querySelector('.study-rule')?.innerText || ''
+      };
     });
     if (lessonMetrics.overflow > 2 || lessonMetrics.clipped) fail('lesson-layout',{viewport:vp.name,track,lessonMetrics});
     if (lessonMetrics.choiceCount !== 4) fail('choice-render',`${vp.name}/${track}: ${lessonMetrics.choiceCount}`);
+    if (lessonMetrics.tutorSections < 4) fail('tutor-sections-missing',{viewport:vp.name,track,count:lessonMetrics.tutorSections});
+    if (!lessonMetrics.rescueToggle) fail('rescue-toggle-missing',`${vp.name}/${track}`);
+    if (track==='physics' && !lessonMetrics.studyRule.includes('그림')) fail('physics-solving-habit',lessonMetrics.studyRule);
+    if (track==='chemistry' && !lessonMetrics.studyRule.includes('조건')) fail('chemistry-solving-habit',lessonMetrics.studyRule);
+
+    await page.locator('.rescue-toggle').click();
+    if (!(await page.locator('#rescue').getAttribute('class'))?.includes('show')) fail('rescue-manual-open',`${vp.name}/${track}`);
+    const beforeRescueProgress = await page.evaluate(()=>localStorage.getItem('science-step-progress-v2'));
+    if (beforeRescueProgress) fail('rescue-advanced-progress',`${vp.name}/${track}`);
+
     await page.screenshot({path:`audit-artifacts/${vp.name}-${track}-lesson.png`,fullPage:true});
     await page.locator('#back').click();
   }
@@ -118,7 +143,7 @@ for (const vp of viewports) {
   await context.close();
 }
 
-// Wrong -> retry -> correct must advance exactly one guided concept and persist.
+// Wrong -> easier explanation -> retry -> correct must advance exactly one real guided concept and persist.
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
@@ -134,17 +159,20 @@ for (const vp of viewports) {
   await page.locator(`[data-c="${wrong}"]`).click();
   await page.locator('#grade').click();
   await page.waitForTimeout(80);
-  const afterWrong=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v1')||'{}')['physics:p-vector']?.doneSteps||0);
+  const afterWrong=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v2')||'{}')['physics:p-vector']?.doneSteps||0);
   if (afterWrong !== 0) fail('wrong-advanced',`doneSteps=${afterWrong}`);
-  if (!(await page.locator('#feedback').innerText()).includes('설명')) fail('wrong-feedback','retry feedback should direct learner back to explanation');
+  if (!(await page.locator('#feedback').innerText()).includes('다른 방식')) fail('wrong-feedback','wrong answer should open alternate explanation');
+  if (!(await page.locator('#rescue').getAttribute('class'))?.includes('show')) fail('wrong-rescue-not-open','alternate explanation should auto-open');
+  const mistakeCount=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v2')||'{}')['physics:p-vector']?.mistakes?.[0]||0);
+  if (mistakeCount !== 1) fail('mistake-not-recorded',`expected 1, got ${mistakeCount}`);
   await page.locator(`[data-c="${answer}"]`).click();
   await page.locator('#grade').click();
   await page.waitForTimeout(80);
-  const afterCorrect=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v1')||'{}')['physics:p-vector']?.doneSteps||0);
+  const afterCorrect=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v2')||'{}')['physics:p-vector']?.doneSteps||0);
   if (afterCorrect !== 1) fail('correct-progress',`expected 1, got ${afterCorrect}`);
   if (!(await page.locator('#grade').innerText()).includes('다음')) fail('continue-copy',await page.locator('#grade').innerText());
   await page.reload({waitUntil:'networkidle'});
-  const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v1')||'{}')['physics:p-vector']?.doneSteps||0);
+  const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v2')||'{}')['physics:p-vector']?.doneSteps||0);
   if (persisted !== 1) fail('progress-persistence',`expected 1, got ${persisted}`);
   await page.screenshot({path:'audit-artifacts/functional-guided-learning.png',fullPage:true});
   await context.close();
