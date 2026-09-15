@@ -44,7 +44,7 @@ const fail=(kind,detail)=>failures.push({kind,detail});
   await context.close();
 }
 
-// 2) Home + lesson visual/layout audit across all required viewports.
+// 2) Home + visual-first lesson audit across all required viewports.
 for(const vp of viewports){
   const context=await browser.newContext({viewport:{width:vp.width,height:vp.height},deviceScaleFactor:1});
   const page=await context.newPage();
@@ -71,27 +71,32 @@ for(const vp of viewports){
     },track);
     const lessonMetrics=await page.evaluate(()=>{
       const vw=document.documentElement.clientWidth;
-      const els=[...document.querySelectorAll('.lesson-card,.concept-stage,.scene-art,.learn-block,.recall-card,.check,.check-prompt,.choice,.btn,.rescue-toggle')];
-      const prompt=document.querySelector('.check-prompt')?.innerText?.trim()||'';
+      const els=[...document.querySelectorAll('.lesson-card,.concept-hero,.concept-scene,.concept-copy,.idea-card,.learn-detail,.trap-card,.recall-card,.check,.question-prompt,.choice,.btn,.rescue-toggle')];
+      const prompt=document.querySelector('.question-prompt')?.innerText?.trim()||'';
+      const recall=document.querySelector('.recall-question')?.innerText?.trim()||'';
       return {
         overflow:document.documentElement.scrollWidth-vw,
         clipped:els.some(el=>{const r=el.getBoundingClientRect();return r.left<-1||r.right>vw+1}),
         choices:document.querySelectorAll('.choice').length,
-        tutorBlocks:document.querySelectorAll('.tutor-section').length,
-        hasScene:Boolean(document.querySelector('.concept-stage .scene-art')),
-        sceneSvg:Boolean(document.querySelector('.concept-stage svg')),
+        choiceIndices:document.querySelectorAll('.choice-index').length,
+        hasScene:Boolean(document.querySelector('.concept-scene svg')),
+        hasConceptCopy:Boolean(document.querySelector('.concept-copy')),
+        ideaCards:document.querySelectorAll('.idea-card').length,
+        details:document.querySelectorAll('.learn-detail').length,
+        openDetails:document.querySelectorAll('.learn-detail[open]').length,
         prompt,
-        recallLabel:document.querySelector('.recall-card h3')?.innerText||'',
+        recall,
         habit:document.querySelector('.study-rule')?.innerText||''
       };
     });
     report.push({viewport:vp.name,track,lessonMetrics});
     if(lessonMetrics.overflow>2||lessonMetrics.clipped) fail('lesson-layout',{vp:vp.name,track,lessonMetrics});
-    if(lessonMetrics.choices!==4) fail('choice-render',{vp:vp.name,track,count:lessonMetrics.choices});
-    if(lessonMetrics.tutorBlocks<5) fail('lesson-depth',{vp:vp.name,track,blocks:lessonMetrics.tutorBlocks});
-    if(!lessonMetrics.hasScene||!lessonMetrics.sceneSvg) fail('visual-first-missing',{vp:vp.name,track});
+    if(lessonMetrics.choices!==4||lessonMetrics.choiceIndices!==4) fail('choice-render',{vp:vp.name,track,lessonMetrics});
+    if(!lessonMetrics.hasScene||!lessonMetrics.hasConceptCopy) fail('visual-first-missing',{vp:vp.name,track});
+    if(lessonMetrics.ideaCards<2) fail('short-explanation-cards-missing',{vp:vp.name,track,count:lessonMetrics.ideaCards});
+    if(lessonMetrics.details<2||lessonMetrics.openDetails!==0) fail('collapsed-support-details',{vp:vp.name,track,lessonMetrics});
     if(!lessonMetrics.prompt||lessonMetrics.prompt!==expectedPrompt) fail('visible-check-prompt',{vp:vp.name,track,expectedPrompt,actual:lessonMetrics.prompt});
-    if(!lessonMetrics.recallLabel.includes('객관식 아님')) fail('recall-check-separation',{vp:vp.name,track,label:lessonMetrics.recallLabel});
+    if(!lessonMetrics.recall.includes(expectedPrompt)) fail('recall-lesson-mismatch',{vp:vp.name,track,expectedPrompt,actual:lessonMetrics.recall});
     if(track==='physics'&&!lessonMetrics.habit.includes('그림')) fail('physics-solving-habit',lessonMetrics.habit);
     if(track==='chemistry'&&!lessonMetrics.habit.includes('조건')) fail('chemistry-solving-habit',lessonMetrics.habit);
     await page.screenshot({path:`audit-artifacts/${vp.name}-${track}-lesson.png`,fullPage:true});
@@ -120,7 +125,7 @@ for(const vp of viewports){
   if(afterWrong!==0) fail('wrong-advanced',afterWrong);
   if(!(await page.locator('#rescue').getAttribute('class'))?.includes('show')) fail('wrong-rescue-not-open','rescue should auto-open');
   const wrongFeedback=await page.locator('#feedback').innerText();
-  if(!wrongFeedback.includes('더 쉬운 비유')) fail('wrong-feedback',wrongFeedback);
+  if(!wrongFeedback.includes('다른 방식 설명')) fail('wrong-feedback',wrongFeedback);
   const mistakes=await page.evaluate(()=>JSON.parse(localStorage.getItem('science-step-progress-v2')||'{}')['physics:p-vector']?.mistakes?.[0]||0);
   if(mistakes!==1) fail('mistake-not-recorded',mistakes);
   await page.locator(`[data-c="${answer}"]`).click();
@@ -135,7 +140,7 @@ for(const vp of viewports){
   await context.close();
 }
 
-// 4) Daily drill legacy schema + wrong-main remediation contract stays valid.
+// 4) Daily drill legacy schema stays valid.
 {
   const context=await browser.newContext({viewport:{width:390,height:844}});
   const page=await context.newPage();
