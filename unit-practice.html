@@ -16,6 +16,14 @@
 <main class="shell" id="practiceHost"></main>
 <script src="learning-data.js"></script>
 <script src="unit-practice-data.js"></script>
+<script>
+(() => {
+  const s=window.UNIT_PRACTICE_SETS?.['p-relativity'];
+  if(s?.questions?.[0]&&!s.questions[0].visual){
+    s.questions[0].visual={type:'table',headers:['시계 위치','중력 세기','멀리서 비교한 시간 흐름'],rows:[['A · 큰 질량 천체 가까이','강함','더 느림'],['B · 천체에서 멀리','약함','더 빠름']],caption:'중력장 세기와 시간 흐름 비교'};
+  }
+})();
+</script>
 <script src="visual-renderer.js"></script>
 <script src="unit-practice-app.js"></script>
 </body>
