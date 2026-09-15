@@ -86,7 +86,7 @@ for(const vp of viewports){
         openDetails:document.querySelectorAll('.learn-detail[open]').length,
         prompt,
         recall,
-        habit:document.querySelector('.study-rule')?.innerText||''
+        habit:document.querySelector('.study-rule')?.textContent||''
       };
     });
     report.push({viewport:vp.name,track,lessonMetrics});
