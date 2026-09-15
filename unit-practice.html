@@ -26,5 +26,19 @@
 </script>
 <script src="visual-renderer.js"></script>
 <script src="unit-practice-app.js"></script>
+<script>
+(() => {
+  const host=document.getElementById('practiceHost');
+  const unit=new URLSearchParams(location.search).get('unit');
+  const noteText=!unit
+    ? '사용자가 제공한 2022 개정 2026판 완자 「역학과 에너지」와 「물질과 에너지」 원본을 모두 최우선 근거로 사용합니다. 현재 연결된 파일 검색에서는 물질과 에너지 원본은 바로 확인되지만 역학과 에너지 원본이 다시 노출되지 않는 상태입니다. 이는 미제공이 아니라 현재 검색 상태의 문제입니다.'
+    : unit.startsWith('p-')
+      ? '사용자가 제공한 2022 개정 2026판 완자 「역학과 에너지」 원본을 최우선 근거로 사용합니다. 현재 연결된 파일 검색에서 원본 PDF가 다시 노출되지 않아 지금 직접 대조하지 못한 세부 문항은 원문 변형이라고 과장하지 않습니다.'
+      : '사용자가 제공한 2022 개정 2026판 완자 「물질과 에너지」 원본의 개념·대표 자료 유형을 직접 대조해 새 문항으로 변형합니다. 원문 문장은 복사하지 않습니다.';
+  const patch=()=>{const note=host?.querySelector('.source-note');if(note&&note.textContent!==noteText)note.textContent=noteText;};
+  if(host)new MutationObserver(patch).observe(host,{childList:true,subtree:true});
+  patch();
+})();
+</script>
 </body>
 </html>
