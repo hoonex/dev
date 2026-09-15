@@ -1,4 +1,15 @@
 (() => {
+  const host = document.getElementById('drillHost');
+  const tracks = Array.isArray(window.LEARNING_TRACKS) ? window.LEARNING_TRACKS : [];
+  const learningState = (() => { try { return JSON.parse(localStorage.getItem('science-step-progress-v2') || '{}') || {}; } catch { return {}; } })();
+  const conceptDone = (track, unit) => Math.min(learningState[`${track.id}:${unit.id}`]?.doneSteps || 0, unit.lesson.length) >= unit.lesson.length;
+  const practiceDone = unitId => { try { return Boolean(JSON.parse(localStorage.getItem(`science-unit-practice-v1:${unitId}`) || '{}')?.completed); } catch { return false; } };
+  const incomplete = tracks.flatMap(track => (track.units || []).filter(unit => !conceptDone(track,unit) || !practiceDone(unit.id)).map(unit => `${track.subject} · ${unit.title}`));
+  if (tracks.length && incomplete.length) {
+    if (host) host.innerHTML = `<div class="notice"><b style="font-size:19px">전범위 실전은 아직 잠겨 있음</b><p style="line-height:1.7;color:#687180">아직 배우지 않은 단원을 섞어서 풀지 않도록 막았습니다. 지금은 <b>개념 확인 → 해당 단원 문제 → 오답 보강</b> 순서로 진행하세요.</p><p style="font-size:12px;color:#687180">남은 단원 ${incomplete.length}개</p><a href="unit-practice.html" style="display:inline-block;margin-top:6px;text-decoration:none;color:#315ee8;font-weight:900">배운 단원 문제로 →</a></div>`;
+    return;
+  }
+
   const allSets = Array.isArray(window.QUIZ_SETS) ? window.QUIZ_SETS : [];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const params = new URLSearchParams(location.search);
@@ -6,7 +17,6 @@
   const formal = allSets.filter(s => s && !s.test && /^\d{4}-\d{2}-\d{2}$/.test(s.id || ''));
   formal.sort((a,b) => String(b.date || b.id).localeCompare(String(a.date || a.id)));
   const set = (requested && formal.find(s => s.id === requested)) || formal[0];
-  const host = document.getElementById('drillHost');
   if (!set || !host) {
     if (host) host.innerHTML = '<div class="notice">학습 문제 세트를 불러오지 못했습니다.</div>';
     return;
